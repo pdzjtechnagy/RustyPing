@@ -7,7 +7,7 @@ use ratatui::{
     symbols,
     text::{Line, Span},
     widgets::{
-        canvas::{Canvas, Rectangle},
+        canvas::{Canvas, Line as CanvasLine},
         Block, Borders, Gauge, Paragraph,
     },
     Frame,
@@ -270,13 +270,12 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
                 let color = Theme::graph_gradient(ratio);
                 
-                // Draw filled rectangle from bottom to data point
-                // Bars are 1.0 wide and centered on x, so they touch (no gaps, no lines)
-                ctx.draw(&Rectangle {
-                    x: x - 0.5,  // Center bar on x coordinate
-                    y: y_min,
-                    width: 1.0,  // Full width so bars touch
-                    height: y - y_min,
+                // Draw thin line (1-dot wide) from bottom to data point
+                ctx.draw(&CanvasLine {
+                    x1: x,
+                    y1: y_min,
+                    x2: x,
+                    y2: y,
                     color,
                 });
             }
@@ -574,7 +573,7 @@ fn draw_speedtest_panel(f: &mut Frame, app: &App, area: Rect) {
     if let Some(ref st) = app.speedtest {
         let mut lines = vec![Line::from("")];
         
-        match st.state() {
+        match st.get_state() {
             SpeedTestState::Preparing => {
                 lines.push(Line::from(vec![
                     Span::styled("Preparing speed test...", Style::default().fg(Theme::TITLE)),
@@ -668,7 +667,6 @@ fn draw_speedtest_panel(f: &mut Frame, app: &App, area: Rect) {
                     Span::styled(msg.clone(), Style::default().fg(Theme::FG)),
                 ]));
             }
-            SpeedTestState::Idle => return,
         }
         
         lines.push(Line::from(""));

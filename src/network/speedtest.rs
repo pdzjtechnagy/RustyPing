@@ -15,19 +15,13 @@ pub enum SpeedTestEvent {
 
 #[derive(Debug, Clone)]
 pub enum SpeedTestState {
-    Idle,
     Preparing,
     Downloading { 
         bytes_received: u64, 
-        start_time: Instant,
-        last_update: Instant,
         samples: Vec<(Instant, u64)>, // (time, bytes) for speed calculation
     },
     Uploading {
         bytes_sent: u64,
-        start_time: Instant,
-        last_update: Instant,
-        samples: Vec<(Instant, u64)>,
         download_results: (f64, f64, f64), // (mbps, avg, peak)
     },
     Complete { 
@@ -43,7 +37,7 @@ pub enum SpeedTestState {
 
 pub struct SpeedTest {
     state: SpeedTestState,
-    target: String,
+    _target: String,
     tx: Option<mpsc::Sender<SpeedTestEvent>>,
     rx: Option<mpsc::Receiver<SpeedTestEvent>>,
 }
@@ -52,7 +46,7 @@ impl SpeedTest {
     pub async fn new(target: &str) -> Result<Self> {
         Ok(Self {
             state: SpeedTestState::Preparing,
-            target: target.to_string(),
+            _target: target.to_string(),
             tx: None,
             rx: None,
         })
@@ -73,8 +67,6 @@ impl SpeedTest {
 
             self.state = SpeedTestState::Downloading {
                 bytes_received: 0,
-                start_time: Instant::now(),
-                last_update: Instant::now(),
                 samples: Vec::new(),
             };
             return Ok(false);
@@ -94,9 +86,6 @@ impl SpeedTest {
                         // Transition to Uploading
                         self.state = SpeedTestState::Uploading {
                             bytes_sent: 0,
-                            start_time: Instant::now(),
-                            last_update: Instant::now(),
-                            samples: Vec::new(),
                             download_results: (mbps, avg, peak),
                         };
 
@@ -135,28 +124,12 @@ impl SpeedTest {
         Ok(self.is_complete())
     }
 
-    pub fn state(&self) -> &SpeedTestState {
+    pub fn get_state(&self) -> &SpeedTestState {
         &self.state
     }
 
     pub fn is_complete(&self) -> bool {
         matches!(self.state, SpeedTestState::Complete { .. } | SpeedTestState::Error(_))
-    }
-
-    pub fn get_progress(&self) -> f64 {
-        match &self.state {
-            SpeedTestState::Idle | SpeedTestState::Preparing => 0.0,
-            SpeedTestState::Downloading { bytes_received, .. } => {
-                // Approximate based on 25MB target
-                (*bytes_received as f64 / 25_000_000.0).min(0.5)
-            }
-            SpeedTestState::Uploading { bytes_sent, .. } => {
-                // Approximate based on 10MB target, starts at 0.5
-                0.5 + (*bytes_sent as f64 / 10_000_000.0).min(0.5)
-            }
-            SpeedTestState::Complete { .. } => 1.0,
-            SpeedTestState::Error(_) => 0.0,
-        }
     }
 }
 

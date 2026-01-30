@@ -19,7 +19,7 @@ pub enum PortStatus {
 }
 
 pub struct PortScanner {
-    target: String,
+    _target: String,
     target_ip: IpAddr,
     ports: Vec<u16>,
     results: Vec<PortResult>,
@@ -70,7 +70,7 @@ impl PortScanner {
         ];
 
         Ok(Self {
-            target: target.to_string(),
+            _target: target.to_string(),
             target_ip,
             ports,
             results: Vec::new(),

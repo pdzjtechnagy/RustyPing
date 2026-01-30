@@ -99,9 +99,9 @@ impl App {
         Ok(())
     }
 
-    pub fn switch_view(&mut self, _view: u8) {
-        // TODO: Implement view switching when multi-target is added
-    }
+    // TODO: Implement view switching when multi-target is added
+    // pub fn switch_view(&mut self, _view: u8) {
+    // }
 
     pub fn settings_navigate_up(&mut self) {
         if self.show_settings && self.settings_selected > 0 {

@@ -7,7 +7,7 @@ use std::time::Duration;
 
 pub struct PingMonitor {
     client: Client,
-    target: String,
+    _target: String,
     target_addr: IpAddr,
     history: VecDeque<Option<f64>>,
     recent: VecDeque<f64>,
@@ -32,7 +32,7 @@ impl PingMonitor {
 
         Ok(Self {
             client,
-            target: target.to_string(),
+            _target: target.to_string(),
             target_addr,
             history: VecDeque::with_capacity(max_history),
             recent: VecDeque::with_capacity(10),

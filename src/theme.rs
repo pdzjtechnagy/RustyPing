@@ -3,6 +3,7 @@ use ratatui::style::Color;
 /// Blacksite Theme - Minimal / Professional / Dark
 pub struct Theme;
 
+#[allow(dead_code)]
 impl Theme {
     // Main colors
     pub const BG: Color = Color::Rgb(14, 15, 17);           // #0e0f11

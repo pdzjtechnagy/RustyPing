@@ -1,186 +1,59 @@
-# RustyPing 2.0 🦀
+# RustyPing 🦀
 
-**Professional network monitoring tool with btop-style TUI and braille graphs**
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![Rust](https://img.shields.io/badge/rust-1.75%2B-orange)
 
-## 🎯 Features
+**RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. Designed for professionals and enthusiasts alike, it provides real-time latency visualization, jitter analysis, and integrated tools like speed testing and port scanning—all in a sleek, "Blacksite" themed TUI (Text User Interface).
 
-- ✅ **Real-time ping monitoring** with <1s detection
-- ✅ **Braille graphs** (btop-style, high-resolution)
-- ✅ **Jitter measurement** (connection stability)
-- ✅ **Packet loss tracking**
-- ✅ **Quality scoring** (EXCELLENT → OFFLINE)
-- ✅ **Smart history** with fuzzy find
-- ✅ **Blacksite theme** (minimal, professional, dark)
-- ✅ **Keyboard-driven** interface (btop-style controls)
+## ✨ Features
 
-## 🚀 Quick Installation
+*   **Real-time Latency Graph**: High-resolution, 1-dot wide Braille rendering for precise latency tracking (similar to `btop`).
+*   **Comprehensive Stats**: Tracks min, max, average latency, jitter, and packet loss in real-time.
+*   **Integrated Speed Test**: Built-in upload and download bandwidth testing (powered by Cloudflare).
+*   **Port Scanner**: Fast, asynchronous TCP port scanner for common services.
+*   **Target History**: Remembers your recent targets and their health stats.
+*   **Professional UI**: "Blacksite" dark theme optimized for long monitoring sessions.
+*   **Cross-Platform**: Works natively on Windows, Linux, and macOS.
 
-### ⚡ One-Liner (Recommended)
+## 🚀 Installation
 
-Install RustyPing directly from PowerShell (requires Git and Rust):
-
+### One-Liner (Windows PowerShell)
+The easiest way to install RustyPing on Windows is via our web installer:
 ```powershell
-iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
+iwr https://raw.githubusercontent.com/pdzjtechnagy/rustyping/main/web_install.ps1 | iex
 ```
 
-### Prerequisites
-
-- Rust (install via `winget install Rustlang.Rustup`)
-- Windows Terminal (recommended for best braille rendering)
-
-### Build & Install
-
-```powershell
-# 1. Build the release binary
-.\build.ps1
-
-# 2. Install globally (adds to PATH)
-.\install.ps1
-
-# 3. Restart your terminal, then use:
-rping 8.8.8.8
-```
-
-### Manual Installation
-
-```powershell
-# Build
-cargo build --release
-
-# Copy to a directory in your PATH (e.g., %USERPROFILE%\.local\bin)
-copy target\release\rping.exe %USERPROFILE%\.local\bin\rping.exe
-
-# Add to PATH if not already there
-[Environment]::SetEnvironmentVariable("Path", "$env:Path;%USERPROFILE%\.local\bin", "User")
-```
-
-## 📖 Usage
+### From Source (All Platforms)
+Ensure you have Rust installed (`cargo`).
 
 ```bash
-# Interactive mode (shows recent targets)
-rping
+git clone https://github.com/pdzjtechnagy/rustyping.git
+cd rustyping
+cargo install --path .
+```
 
-# Direct target
-rping 8.8.8.8
+## 🎮 Usage
+
+Start monitoring a target immediately:
+```bash
 rping google.com
-
-# Show history
-rping --list
-
-# Force selection menu
-rping --select
+rping 1.1.1.1
 ```
 
-## ⌨️ Keyboard Controls
+### Keyboard Controls
+| Key | Action |
+| :--- | :--- |
+| **S** | Start **S**peed Test |
+| **P** | Start **P**ort Scan |
+| **R** | **R**eset Statistics |
+| **ESC** | Open **S**ettings / Close Panels |
+| **Q** | **Q**uit |
 
-| Key            | Action               |
-| -------------- | -------------------- |
-| `Q` / `Ctrl+C` | Quit                 |
-| `ESC`          | Settings menu        |
-| `S`            | Run speed test       |
-| `P`            | Port scan            |
-| `J`            | Toggle jitter panel  |
-| `H`            | Toggle history panel |
-| `R`            | Reset statistics     |
-| `↑/↓`          | Navigate settings    |
-| `Enter`        | Toggle setting       |
+## 🛠️ Development
 
-## 🎨 UI Improvements
+See [DEVELOPMENT.md](DEVELOPMENT.md) for details on setting up your environment, the Git workflow, and contributing to the project.
 
-This version includes optimized UI/UX with:
+## 📝 License
 
-- **Enhanced visual hierarchy** - Better spacing and layout
-- **Improved graph rendering** - Smooth gradients and better bounds handling
-- **Professional styling** - btop-level aesthetics
-- **Better empty states** - Informative messages when no data
-- **Enhanced footer** - More information density
-- **Polished settings overlay** - Better visual feedback
-
-## 📁 Project Structure
-
-```
-rustyping/
-├── Cargo.toml              # Dependencies & config
-├── src/
-│   ├── main.rs             # Entry point & CLI
-│   ├── app.rs              # Core application logic
-│   ├── ui.rs               # TUI rendering (braille graphs)
-│   ├── theme.rs            # Blacksite color scheme
-│   ├── storage.rs          # History & config management
-│   └── network/
-│       ├── mod.rs          # Network operations
-│       ├── ping.rs         # Ping monitor
-│       ├── speedtest.rs    # Speed test (stub)
-│       └── portscan.rs     # Port scanner (stub)
-├── build.ps1               # Build script
-└── install.ps1            # Installation script
-```
-
-## 🔧 Configuration
-
-Config stored in:
-
-- **Windows:** `%APPDATA%\rustyping\history.json`
-
-Settings can be toggled via the ESC menu:
-
-- Show/hide jitter panel
-- Show/hide history panel
-- Pause ping during speedtest
-
-## 🐛 Troubleshooting
-
-**"Permission denied" error**
-
-- Run as administrator (ICMP requires elevated privileges on Windows)
-
-**Braille shows as boxes**
-
-- Use Windows Terminal instead of cmd.exe
-
-**First ping timeouts**
-
-- Normal behavior - DNS resolution delay, second ping succeeds
-
-**Binary not found after install**
-
-- Restart your terminal after running install.ps1
-- Verify PATH includes the install directory
-
-## 📝 Development
-
-```bash
-# Development build
-cargo build
-
-# Run tests
-cargo test
-
-# Run with specific target
-cargo run -- 8.8.8.8
-```
-
-## 🎯 Roadmap
-
-- [ ] Implement speed test functionality
-- [ ] Implement port scanner
-- [ ] Multi-target monitoring
-- [ ] Export session data to CSV
-- [ ] Alert on threshold breach
-
-## 📄 License
-
-MIT License - See LICENSE file for details
-
-## 🙏 Credits
-
-Inspired by:
-
-- [btop](https://github.com/aristocratos/btop) - System monitor with beautiful TUI
-- [gping](https://github.com/orf/gping) - Rust-based ping grapher
-
-Built with:
-
-- [Ratatui](https://ratatui.rs/) - Terminal UI framework
-- [surge-ping](https://docs.rs/surge-ping/) - Async ICMP pinging
-- [Tokio](https://tokio.rs/) - Async runtime
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

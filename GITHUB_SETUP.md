@@ -4,11 +4,11 @@ Follow these steps to upload your local project to your GitHub account (`pdzjtec
 
 ## 1. Create the Repository on GitHub
 
-1.  Log in to [GitHub.com](https://github.com).
-2.  Click the **+** icon in the top-right corner and select **New repository**.
-3.  Name the repository: `RustyPing`.
-4.  **Important**: Do **NOT** check "Add a README", "Add .gitignore", or "Choose a license". We want an empty repository.
-5.  Click **Create repository**.
+1. Log in to [GitHub.com](https://github.com).
+2. Click the **+** icon in the top-right corner and select **New repository**.
+3. Name the repository: `RustyPing`.
+4. **Important**: Do **NOT** check "Add a README", "Add .gitignore", or "Choose a license". We want an empty repository.
+5. Click **Create repository**.
 
 ## 2. Prepare your Local Project
 
@@ -20,7 +20,7 @@ git init
 
 # Configure your Git identity (if you haven't already)
 git config --global user.name "pdzjtechnagy"
-git config --global user.email "your_email@example.com" 
+git config --global user.email "pdzj.technagy@gmail.com" 
 
 # Create a .gitignore file (to exclude build artifacts)
 # (Copy-paste this entire block)

@@ -29,7 +29,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             pause_ping_during_speedtest: true,
-            graph_history_length: 60,
+            graph_history_length: 200,
             ping_interval_ms: 1000,
             show_jitter_panel: true,
             show_history_panel: true,
@@ -128,6 +128,7 @@ impl TargetHistory {
         println!("└──────────────────────────────────────────┘\n");
     }
 
+    #[allow(dead_code)]
     pub fn interactive_select(&self) -> Result<String> {
         self.print_recent();
         print!("\nEnter target number or new address: ");
