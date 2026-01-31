@@ -20,7 +20,15 @@
 
 We've made installing RustyPing as easy as possible. Choose the method that fits your comfort level.
 
-### Option 1: The "I Just Want It To Work" Method (Windows Only)
+### Option 1: The "Instant Run" (Portable) Method
+Use this if you want to run RustyPing *right now* without installing anything permanently. It works exactly like the "Chris Titus Tool" - it runs from memory/temp and leaves no trace.
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
+```
+
+### Option 2: The "Install" Method (Windows Only)
+Use this if you want RustyPing permanently installed on your system.
 Open your PowerShell (press `Win + X` and select **Terminal** or **PowerShell**) and paste this single line. It handles downloading, building, and installing for you automatically.
 
 ```powershell
@@ -31,7 +39,7 @@ iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_inst
 
 ---
 
-### Option 2: The "Manual" Method (Step-by-Step)
+### Option 3: The "Manual" Method (Step-by-Step)
 If you prefer to see exactly what's happening or are on Linux/macOS, follow these steps.
 
 #### 1. Install Prerequisites
