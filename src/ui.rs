@@ -252,6 +252,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     let time_window = format!("last {}s", data.len());
 
     // BRAILLE CANVAS - High-resolution rendering!
+    // Right-to-Left Scrolling: Newest data is on the RIGHT side.
     let canvas = Canvas::default()
         .block(
             Block::default()
@@ -261,20 +262,29 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 .border_style(Style::default().fg(Theme::BOX)),
         )
         .marker(symbols::Marker::Braille)  // <-- BRAILLE RENDERING!
-        .x_bounds([0.0, data.len() as f64])
+        // IMPORTANT: To make bars touch side-by-side, we map the X-bounds to the exact number of data points.
+        // This ensures 1 unit in X coordinates = 1 data point width.
+        .x_bounds([0.0, data.len() as f64]) 
         .y_bounds([y_min, y_max])
         .paint(|ctx| {
             // Draw solid filled waveform graph (btop CPU-style) with gradient colors
-            // Bars are touching for a solid waveform appearance
-            for &(x, y) in &points {
+            for (i, &(_, y)) in points.iter().enumerate() {
+                // Calculate position:
+                // We want the data to look contiguous. 
+                // Since x_bounds is [0, len], we just plot at index 'i'.
+                // 'points' is already sorted oldest -> newest.
+                // So i=0 is left, i=max is right.
+                
+                let x_pos = i as f64;
+
                 let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
                 let color = Theme::graph_gradient(ratio);
                 
                 // Draw thin line (1-dot wide) from bottom to data point
                 ctx.draw(&CanvasLine {
-                    x1: x,
+                    x1: x_pos, 
                     y1: y_min,
-                    x2: x,
+                    x2: x_pos,
                     y2: y,
                     color,
                 });
