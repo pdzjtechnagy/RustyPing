@@ -16,22 +16,76 @@
 *   **Professional UI**: "Blacksite" dark theme optimized for long monitoring sessions.
 *   **Cross-Platform**: Works natively on Windows, Linux, and macOS.
 
-## 🚀 Installation
+## 🚀 Installation Guide (For Absolute Beginners)
 
-### One-Liner (Windows PowerShell)
-The easiest way to install RustyPing on Windows is via our web installer:
+We've made installing RustyPing as easy as possible. Choose the method that fits your comfort level.
+
+### Option 1: The "I Just Want It To Work" Method (Windows Only)
+Open your PowerShell (press `Win + X` and select **Terminal** or **PowerShell**) and paste this single line. It handles downloading, building, and installing for you automatically.
+
 ```powershell
-iwr https://raw.githubusercontent.com/pdzjtechnagy/rustyping/main/web_install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
 ```
 
-### From Source (All Platforms)
-Ensure you have Rust installed (`cargo`).
+*Note: If you see red error text about "link.exe" or "C++ Build Tools", don't panic! It just means your computer needs a standard Microsoft tool to build software. The error message will give you the exact command to fix it.*
 
+---
+
+### Option 2: The "Manual" Method (Step-by-Step)
+If you prefer to see exactly what's happening or are on Linux/macOS, follow these steps.
+
+#### 1. Install Prerequisites
+RustyPing is built with **Rust**, so you need the Rust toolchain installed.
+
+*   **Windows**:
+    1.  Open PowerShell as Administrator.
+    2.  Run: `winget install Rustlang.Rustup`
+    3.  **Important**: You also need C++ Build Tools. Run:
+        ```powershell
+        winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
+        ```
+    4.  Close and reopen your terminal.
+
+*   **Linux / macOS**:
+    Open your terminal and run:
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    ```
+
+#### 2. Get the Code
+Download the RustyPing source code to your computer.
 ```bash
-git clone https://github.com/pdzjtechnagy/rustyping.git
-cd rustyping
+git clone https://github.com/pdzjtechnagy/RustyPing.git
+cd RustyPing
+```
+
+#### 3. Build & Install
+Turn the code into a runnable program. This might take a minute or two as it optimizes the engine for your specific machine.
+```bash
 cargo install --path .
 ```
+
+#### 4. Run It!
+You can now run RustyPing from anywhere on your computer.
+```bash
+rping 1.1.1.1
+```
+
+---
+
+## ❓ Troubleshooting & FAQ
+
+**Q: I get "command not found" after installing.**
+A: You likely need to restart your terminal so it recognizes the new `rping` command. If that doesn't work, ensure your Rust `bin` folder is in your PATH.
+
+**Q: The installation failed with "linker not found".**
+A: This is the most common issue on Windows. It means you are missing the Visual Studio Build Tools. Run the `winget` command in the "Manual Method" section above to install them.
+
+**Q: Why do I need to compile it?**
+A: Compiling from source ensures RustyPing runs at maximum speed on your specific hardware. It's like getting a suit tailored exactly to your measurements instead of buying off the rack!
+
+## 🎮 Usage Guide
+
 
 ## 🎮 Usage
 

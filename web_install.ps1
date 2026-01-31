@@ -30,6 +30,18 @@ if (-not (Get-Command "cargo" -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+# Check for C++ Build Tools (link.exe)
+if (-not (Get-Command "link" -ErrorAction SilentlyContinue)) {
+    Write-Host "[!] C++ Build Tools (link.exe) not found." -ForegroundColor Red
+    Write-Host "    Rust on Windows requires the MSVC Linker." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "    Please run the following command in an Administrator PowerShell:" -ForegroundColor Yellow
+    Write-Host "    winget install Microsoft.VisualStudio.2022.BuildTools --override `"--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart`"" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "    After installing, restart your terminal and try again."
+    exit 1
+}
+
 # 2. Setup Installation Directory
 $repoUrl = "https://github.com/pdzjtechnagy/RustyPing.git"
 $tempDir = [System.IO.Path]::Combine($env:TEMP, "RustyPing_Install")

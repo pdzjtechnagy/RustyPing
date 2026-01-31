@@ -18,9 +18,10 @@ winget install Git.Git
 winget install Rustlang.Rustup
 
 # Install C++ Build Tools (Required for linking)
-winget install Microsoft.VisualStudio.2022.BuildTools
+# This command automatically selects the required C++ workload so you don't have to click anything!
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
 ```
-*Note: After installing Build Tools, ensure the "Desktop development with C++" workload is selected in the installer.*
+*Note: This command runs silently in the background. Give it a few minutes to finish.*
 
 ### 2. Clone Your Repo
 Download your code from GitHub:
