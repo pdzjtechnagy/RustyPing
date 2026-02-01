@@ -16,13 +16,14 @@ use ratatui::{
 pub fn draw(f: &mut Frame, app: &mut App) {
     let area = f.area();
     
-    // Dynamic scaling based on terminal size (btop-style)
-    let min_height = 20;
-    let min_width = 80;
-    
-    if area.height < min_height as u16 || area.width < min_width as u16 {
-        // Terminal too small - show minimal view
-        draw_minimal_view(f, app, area);
+    // ULTRA-COMPACT MODE (Tiny boxes, e.g., 20x5)
+    // If very small, show ONLY the graph.
+    if area.height < 12 || area.width < 50 {
+        draw_latency_graph(f, app, area);
+        // Overlay settings if open, even in tiny mode
+        if app.show_settings {
+            draw_settings_overlay(f, app);
+        }
         return;
     }
 
@@ -35,10 +36,10 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let has_portscan = app.portscan.is_some();
     let has_panels = has_speedtest || has_portscan;
     
-    // Adjust layout based on panels
-    let stats_height = if area.height >= 30 {
+    // Adjust layout based on panels and available height
+    let stats_height = if area.height >= 35 {
         13 // Full stats panel
-    } else if area.height >= 25 {
+    } else if area.height >= 28 {
         10 // Reduced stats
     } else {
         8  // Minimal stats
@@ -54,101 +55,83 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         0
     };
     
-    let graph_height = area.height.saturating_sub(header_height + stats_height + footer_height + panel_height);
+    // Calculate available graph height
+    let used_height = header_height + stats_height + footer_height + panel_height;
+    let graph_height = area.height.saturating_sub(used_height);
+
+    // Layout chunks
+    let constraints = if has_panels {
+        vec![
+            Constraint::Length(header_height),
+            Constraint::Min(graph_height.max(5)), // Graph with minimum height
+            Constraint::Length(stats_height),
+            Constraint::Length(panel_height),
+            Constraint::Length(footer_height),
+        ]
+    } else {
+        vec![
+            Constraint::Length(header_height),
+            Constraint::Min(graph_height.max(5)), // Graph with minimum height
+            Constraint::Length(stats_height),
+            Constraint::Length(footer_height),
+        ]
+    };
 
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(header_height),
-            Constraint::Min(graph_height.max(8)), // Graph with minimum height
-            Constraint::Length(stats_height),
-            if has_panels { Constraint::Length(panel_height) } else { Constraint::Length(0) },
-            Constraint::Length(footer_height),
-        ])
+        .constraints(constraints)
         .split(area);
 
-    // Header
-    draw_header(f, app, chunks[0]);
+    // Safe access to chunks (in case layout fails or is different)
+    if let Some(chunk) = chunks.get(0) { draw_header(f, app, *chunk); }
+    if let Some(chunk) = chunks.get(1) { draw_latency_graph(f, app, *chunk); }
+    
+    // Logic to handle variable chunk indices based on panels
+    let stats_idx = 2;
+    let panel_idx = if has_panels { 3 } else { 999 }; // 999 = invalid
+    let footer_idx = if has_panels { 4 } else { 3 };
 
-    // Main latency graph (BRAILLE!)
-    draw_latency_graph(f, app, chunks[1]);
-
-    // Bottom section - responsive layout
-    let bottom_chunks = if app.show_jitter && area.width >= 100 {
-        Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(chunks[2])
-    } else {
-        Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(100), Constraint::Length(0)])
-            .split(chunks[2])
-    };
-
-    draw_statistics(f, app, bottom_chunks[0]);
-    if app.show_jitter && area.width >= 100 {
-        draw_jitter_panel(f, app, bottom_chunks[1]);
+    if let Some(chunk) = chunks.get(stats_idx) {
+        // Bottom section - responsive layout
+        if app.show_jitter && area.width >= 100 {
+            let bottom_chunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .split(*chunk);
+            draw_statistics(f, app, bottom_chunks[0]);
+            draw_jitter_panel(f, app, bottom_chunks[1]);
+        } else {
+            draw_statistics(f, app, *chunk);
+        }
     }
 
     // Panels (speedtest/portscan)
-    if has_panels && chunks.len() > 3 {
-        let panel_area = chunks[3];
-        if has_speedtest && has_portscan {
-            let panel_chunks = Layout::default()
-                .direction(Direction::Horizontal)
-                .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-                .split(panel_area);
-            draw_speedtest_panel(f, app, panel_chunks[0]);
-            draw_portscan_panel(f, app, panel_chunks[1]);
-        } else if has_speedtest {
-            draw_speedtest_panel(f, app, panel_area);
-        } else if has_portscan {
-            draw_portscan_panel(f, app, panel_area);
+    if has_panels {
+        if let Some(panel_area) = chunks.get(panel_idx) {
+            if has_speedtest && has_portscan {
+                let panel_chunks = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(*panel_area);
+                draw_speedtest_panel(f, app, panel_chunks[0]);
+                draw_portscan_panel(f, app, panel_chunks[1]);
+            } else if has_speedtest {
+                draw_speedtest_panel(f, app, *panel_area);
+            } else if has_portscan {
+                draw_portscan_panel(f, app, *panel_area);
+            }
         }
     }
 
     // Footer
-    draw_footer(f, app, chunks[chunks.len() - 1]);
+    if let Some(chunk) = chunks.get(footer_idx) {
+        draw_footer(f, app, *chunk);
+    }
 
     // Settings overlay (rendered last so it's on top)
     if app.show_settings {
         draw_settings_overlay(f, app);
     }
-}
-
-fn draw_minimal_view(f: &mut Frame, _app: &App, area: Rect) {
-    let text = vec![
-        Line::from(""),
-        Line::from(vec![
-            Span::styled(
-                "Terminal too small!",
-                Style::default().fg(Theme::CRIT).add_modifier(Modifier::BOLD),
-            ),
-        ]),
-        Line::from(""),
-        Line::from(vec![
-            Span::styled(
-                format!("Minimum size: 80x20 (current: {}x{})", area.width, area.height),
-                Style::default().fg(Theme::LOW),
-            ),
-        ]),
-        Line::from(""),
-        Line::from(vec![
-            Span::styled("Resize terminal and restart.", Style::default().fg(Theme::FG)),
-        ]),
-    ];
-    
-    let paragraph = Paragraph::new(text)
-        .block(
-            Block::default()
-                .title(" RustyPing ")
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Theme::CRIT)),
-        )
-        .style(Style::default().bg(Theme::BG).fg(Theme::FG));
-    
-    f.render_widget(paragraph, area);
 }
 
 fn draw_header(f: &mut Frame, app: &App, area: Rect) {
