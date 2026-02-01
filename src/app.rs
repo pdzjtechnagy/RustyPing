@@ -1,7 +1,8 @@
-use crate::network::{PingMonitor, SpeedTest, PortScanner};
+use crate::network::{PingMonitor, SpeedTest, PortScanner, PingResult, start_ping_task};
 use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
 use std::time::{Duration, Instant};
+use tokio::sync::mpsc;
 
 pub struct App {
     pub target: String,
@@ -9,6 +10,10 @@ pub struct App {
     pub start_time: Instant,
     pub last_ping: Instant,
     
+    // Background Task Channels
+    pub ping_tx: mpsc::Sender<()>,
+    pub ping_rx: mpsc::Receiver<PingResult>,
+
     // UI State
     pub show_settings: bool,
     pub show_jitter: bool,
@@ -28,14 +33,19 @@ impl App {
         let history = TargetHistory::load()?;
         let config = history.config.clone();
         
+        // Start background ping task
+        let (target_addr, ping_tx, ping_rx) = start_ping_task(&target).await?;
+
         let ping_monitor = PingMonitor::new(
-            &target,
+            target_addr,
             config.graph_history_length,
-        ).await?;
+        );
 
         Ok(Self {
             target,
             ping_monitor,
+            ping_tx,
+            ping_rx,
             start_time: Instant::now(),
             last_ping: Instant::now(),
             show_settings: false,
@@ -51,8 +61,15 @@ impl App {
     pub async fn tick(&mut self) -> Result<()> {
         // Ping at configured interval
         if self.last_ping.elapsed() >= Duration::from_millis(self.config.ping_interval_ms) {
-            self.ping_monitor.ping().await?;
+            // Trigger a new ping if the worker is ready
+            // We use try_send to avoid blocking and to drop the ping if the worker is busy
+            let _ = self.ping_tx.try_send(());
             self.last_ping = Instant::now();
+        }
+
+        // Process incoming ping results
+        while let Ok(result) = self.ping_rx.try_recv() {
+            self.ping_monitor.process_result(result);
         }
 
         // Update speedtest if running (don't auto-close, user must press C)

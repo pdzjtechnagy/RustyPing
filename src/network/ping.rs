@@ -4,10 +4,15 @@ use std::collections::VecDeque;
 use std::net::IpAddr;
 use surge_ping::{Client, Config, PingIdentifier, PingSequence};
 use std::time::Duration;
+use tokio::sync::mpsc;
+
+#[derive(Debug)]
+pub enum PingResult {
+    Success(f64),
+    Timeout,
+}
 
 pub struct PingMonitor {
-    client: Client,
-    _target: String,
     target_addr: IpAddr,
     history: VecDeque<Option<f64>>,
     recent: VecDeque<f64>,
@@ -18,21 +23,8 @@ pub struct PingMonitor {
 }
 
 impl PingMonitor {
-    pub async fn new(target: &str, max_history: usize) -> Result<Self> {
-        let target_addr: IpAddr = if let Ok(addr) = target.parse() {
-            addr
-        } else {
-            use tokio::net::lookup_host;
-            let mut addrs = lookup_host(format!("{target}:0")).await?;
-            addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
-        };
-
-        let config = Config::default();
-        let client = Client::new(&config)?;
-
-        Ok(Self {
-            client,
-            _target: target.to_string(),
+    pub fn new(target_addr: IpAddr, max_history: usize) -> Self {
+        Self {
             target_addr,
             history: VecDeque::with_capacity(max_history),
             recent: VecDeque::with_capacity(10),
@@ -40,7 +32,7 @@ impl PingMonitor {
             total_pings: 0,
             successful_pings: 0,
             failed_pings: 0,
-        })
+        }
     }
 
     pub fn get_target_addr(&self) -> IpAddr {
@@ -62,26 +54,18 @@ impl PingMonitor {
         // If growing, we just let it fill up naturally
     }
 
-    pub async fn ping(&mut self) -> Result<()> {
-        let mut pinger = self.client.pinger(self.target_addr, PingIdentifier(rand::random())).await;
-        
+    pub fn process_result(&mut self, result: PingResult) {
         self.total_pings += 1;
-
-        // Use tokio timeout to ensure we don't hang
-        let payload = [0; 8];
-        match tokio::time::timeout(Duration::from_secs(1), pinger.ping(PingSequence(0), &payload)).await {
-            Ok(Ok((_, duration))) => {
-                let ms = duration.as_secs_f64() * 1000.0;
+        match result {
+            PingResult::Success(ms) => {
                 self.successful_pings += 1;
                 self.history.push_back(Some(ms));
                 self.recent.push_back(ms);
-
                 if self.recent.len() > 10 {
                     self.recent.pop_front();
                 }
-            }
-            _ => {
-                // Timeout or Error
+            },
+            PingResult::Timeout => {
                 self.failed_pings += 1;
                 self.history.push_back(None);
             }
@@ -90,8 +74,6 @@ impl PingMonitor {
         if self.history.len() > self.max_history {
             self.history.pop_front();
         }
-
-        Ok(())
     }
 
     pub fn latency_data(&self) -> &VecDeque<Option<f64>> {
@@ -154,7 +136,11 @@ impl PingMonitor {
             100.0
         };
 
-        let quality = if current_response.is_none() {
+        let quality = if current_response.is_none() && self.history.back().is_some() {
+            // Only report OFFLINE if the MOST RECENT ping failed (history.back() is the latest pushed, which is None)
+            // Wait, history.back() returns Option<&Option<f64>>.
+            // If pushed None, back() is Some(None).
+            // So current_response is None.
             "OFFLINE".to_string()
         } else if current_avg < 30.0 {
             "EXCELLENT".to_string()
@@ -194,3 +180,42 @@ impl PingMonitor {
     }
 }
 
+// Background Task Logic
+pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<()>, mpsc::Receiver<PingResult>)> {
+    let target_addr: IpAddr = if let Ok(addr) = target.parse() {
+        addr
+    } else {
+        use tokio::net::lookup_host;
+        let mut addrs = lookup_host(format!("{target}:0")).await?;
+        addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
+    };
+
+    let (cmd_tx, mut cmd_rx) = mpsc::channel(1);
+    let (res_tx, res_rx) = mpsc::channel(100);
+
+    let config = Config::default();
+    let client = Client::new(&config)?;
+    let addr = target_addr;
+
+    tokio::spawn(async move {
+        let mut pinger = client.pinger(addr, PingIdentifier(rand::random())).await;
+        let mut seq = 0;
+
+        while let Some(_) = cmd_rx.recv().await {
+            let payload = [0; 8];
+            // 2-second timeout for the ping itself
+            match tokio::time::timeout(Duration::from_secs(2), pinger.ping(PingSequence(seq), &payload)).await {
+                Ok(Ok((_, duration))) => {
+                    let ms = duration.as_secs_f64() * 1000.0;
+                    let _ = res_tx.send(PingResult::Success(ms)).await;
+                }
+                _ => {
+                    let _ = res_tx.send(PingResult::Timeout).await;
+                }
+            }
+            seq = seq.wrapping_add(1);
+        }
+    });
+
+    Ok((target_addr, cmd_tx, res_rx))
+}

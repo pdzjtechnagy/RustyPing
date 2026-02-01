@@ -145,7 +145,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
     let text = vec![Line::from(vec![
         Span::styled(" RustyPing ", Style::default().fg(Theme::TITLE).add_modifier(Modifier::BOLD)),
         Span::raw("│"),
-        Span::styled(format!(" Target IP: {ip_display} "), Style::default().fg(Theme::LOW)),
+        Span::styled(format!(" {ip_display} "), Style::default().fg(Theme::LOW)),
         Span::raw("│"),
         Span::styled(format!(" Target: {} ", &app.target), Style::default().fg(Theme::HI_FG)),
         Span::raw("│"),
@@ -186,7 +186,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
         let paragraph = Paragraph::new(empty_text)
             .block(
                 Block::default()
-                    .title("LATENCY GRAPH")
+                    .title("")
                     .title_style(Style::default().fg(Theme::TITLE))
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(Theme::BOX)),
@@ -196,39 +196,16 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
         return;
     }
 
-    // Filter out None values and convert to (x, y) points
-    let points: Vec<(f64, f64)> = data
-        .iter()
-        .enumerate()
-        .filter_map(|(i, &val)| val.map(|v| (i as f64, v)))
-        .collect();
-
-    if points.is_empty() {
-        let empty_text = vec![
-            Line::from(""),
-            Line::from(vec![
-                Span::styled(
-                    "  No successful pings yet...",
-                    Style::default().fg(Theme::CRIT),
-                ),
-            ]),
-        ];
-        let paragraph = Paragraph::new(empty_text)
-            .block(
-                Block::default()
-                    .title("LATENCY GRAPH")
-                    .title_style(Style::default().fg(Theme::TITLE))
-                    .borders(Borders::ALL)
-                    .border_style(Style::default().fg(Theme::BOX)),
-            )
-            .style(Style::default().bg(Theme::BG).fg(Theme::FG));
-        f.render_widget(paragraph, area);
-        return;
-    }
-
-    // Calculate bounds with better padding
-    let max_latency: f64 = points.iter().map(|(_, y)| *y).fold(0.0_f64, |a, b| a.max(b)).max(50.0);
-    let min_latency: f64 = points.iter().map(|(_, y)| *y).fold(f64::INFINITY, |a, b| a.min(b)).min(0.0);
+    // Calculate bounds based on successful pings
+    let valid_pings: Vec<f64> = data.iter().filter_map(|&v| v).collect();
+    
+    let (min_latency, max_latency) = if valid_pings.is_empty() {
+        (0.0, 100.0) // Default range if all pings failed
+    } else {
+        let min = valid_pings.iter().fold(f64::INFINITY, |a, b| a.min(*b)).min(0.0);
+        let max = valid_pings.iter().fold(0.0_f64, |a, b| a.max(*b)).max(50.0);
+        (min, max)
+    };
     
     // Add 10% padding on top and bottom for better visibility
     let y_padding: f64 = (max_latency - min_latency).max(10.0) * 0.1;
@@ -240,7 +217,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
 
     // IP Display
     let ip_display = app.ping_monitor.get_target_addr().to_string();
-    let title_text = format!(" LATENCY ({time_window}) | Target IP: {ip_display} ");
+    let title_text = format!(" {ip_display} │ {time_window} ");
 
     // BRAILLE CANVAS - High-resolution rendering!
     // Right-to-Left Scrolling: Newest data is on the RIGHT side.
@@ -269,11 +246,13 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
             // We align the newest data point to the absolute rightmost available dot column.
             // Coordinate System: 0.0 (Left) -> canvas_width_dots (Right)
             
-            let data_len = points.len();
+            let data_len = data.len();
             let right_edge = canvas_width_dots - 1.0; // The last visible column index
 
-            for (i, &(_, y)) in points.iter().enumerate() {
+            for (i, val_opt) in data.iter().enumerate() {
                 // Calculate age: 0 = newest, 1 = second newest...
+                // The data is pushed to back, so the last element is the newest.
+                // data[i] where i = data_len - 1 is the newest.
                 let age = data_len - 1 - i;
                 
                 // Map to screen coordinate
@@ -287,18 +266,30 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 // Ensure strict integer alignment for crisp rendering
                 let x_final = x_pos.floor();
 
-                let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
-                let color = Theme::graph_gradient(ratio);
-                
-                // Draw a vertical line from bottom to value
-                // Using the same X for x1 and x2 ensures a 1-dot wide vertical line.
-                ctx.draw(&CanvasLine {
-                    x1: x_final, 
-                    y1: y_min,
-                    x2: x_final,
-                    y2: y,
-                    color,
-                });
+                if let Some(y) = val_opt {
+                    let ratio = if y_max > 0.0 { (*y / y_max).min(1.0) } else { 0.0 };
+                    let color = Theme::graph_gradient(ratio);
+                    
+                    // Draw a vertical line from bottom to value
+                    // Using the same X for x1 and x2 ensures a 1-dot wide vertical line.
+                    ctx.draw(&CanvasLine {
+                        x1: x_final, 
+                        y1: y_min,
+                        x2: x_final,
+                        y2: *y,
+                        color,
+                    });
+                } else {
+                    // Draw missed ping line (lighter grey dot line)
+                    // Full height line to indicate drop
+                    ctx.draw(&CanvasLine {
+                        x1: x_final,
+                        y1: y_min,
+                        x2: x_final,
+                        y2: y_max,
+                        color: Theme::MISSED,
+                    });
+                }
             }
         });
 

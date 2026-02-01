@@ -19,6 +19,7 @@ impl Theme {
     
     // Status Colors
     pub const IDLE: Color = Color::Rgb(74, 77, 82);         // #4a4d52
+    pub const MISSED: Color = Color::Rgb(100, 100, 100);    // Lighter grey for failures
     pub const LOW: Color = Color::Rgb(143, 143, 143);       // #8f8f8f
     pub const MEDIUM: Color = Color::Rgb(199, 162, 74);     // #c7a24a
     pub const HIGH: Color = Color::Rgb(201, 75, 75);        // #c94b4b

@@ -2,7 +2,7 @@ mod ping;
 mod speedtest;
 mod portscan;
 
-pub use ping::PingMonitor;
+pub use ping::{PingMonitor, PingResult, start_ping_task};
 pub use speedtest::{SpeedTest, SpeedTestState};
 pub use portscan::{PortScanner, PortResult, PortStatus};
 
