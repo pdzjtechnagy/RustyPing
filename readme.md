@@ -16,6 +16,7 @@
 *   **Target History**: Remembers your recent targets and their health stats.
 *   **Professional UI**: "Blacksite" dark theme optimized for long monitoring sessions.
 *   **Cross-Platform**: Works natively on Windows, Linux, and macOS.
+*   **Proxmox & Alpine Ready**: Optimized for Proxmox LXC containers and Alpine Linux (via `musl` static builds).
 
 ## 🚀 Installation Guide (For Absolute Beginners)
 

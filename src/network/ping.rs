@@ -201,7 +201,7 @@ pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<()>, 
         let mut pinger = client.pinger(addr, PingIdentifier(rand::random())).await;
         let mut seq = 0;
 
-        while let Some(_) = cmd_rx.recv().await {
+        while (cmd_rx.recv().await).is_some() {
             let payload = [0; 8];
             // 2-second timeout for the ping itself
             match tokio::time::timeout(Duration::from_secs(2), pinger.ping(PingSequence(seq), &payload)).await {

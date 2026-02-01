@@ -21,9 +21,9 @@ mod tests {
     #[test]
     fn test_theme_colors() {
         // Test latency thresholds
-        assert_eq!(Theme::latency_color(20.0), Theme::GOOD);
-        assert_eq!(Theme::latency_color(50.0), Theme::WARN);
-        assert_eq!(Theme::latency_color(150.0), Theme::CRIT);
+        assert_eq!(Theme::latency_color(20.0), Theme::good());
+        assert_eq!(Theme::latency_color(50.0), Theme::warn());
+        assert_eq!(Theme::latency_color(150.0), Theme::crit());
 
         // Test graph gradient clamping
         // Should not panic on out of bounds

@@ -1,0 +1,20 @@
+PackageIdentifier: RustyPing.RustyPing
+PackageVersion: 2.1.2
+PackageLocale: en-US
+Publisher: RustyPing Team
+PackageName: RustyPing
+License: MIT
+ShortDescription: Advanced TUI Ping Tool
+Moniker: rustyping
+Tags:
+  - ping
+  - network
+  - tui
+  - rust
+Installers:
+  - Architecture: x64
+    InstallerType: portable
+    InstallerUrl: https://github.com/pdzjtechnagy/RustyPing/releases/download/v2.1.2/rustyping-windows-v2.1.2.zip
+    InstallerSha256: REPLACE_WITH_SHA256
+ManifestType: singleton
+ManifestVersion: 1.0.0

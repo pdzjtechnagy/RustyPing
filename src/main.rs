@@ -22,17 +22,37 @@ use std::io::{self, Write};
 #[tokio::main]
 async fn main() -> Result<()> {
     // Parse CLI arguments
-    let target = match std::env::args().nth(1) {
-        Some(arg) if arg == "--list" => {
-            let history = storage::TargetHistory::load()?;
-            history.print_recent();
-            return Ok(());
+    let mut target_arg = None;
+    let mut monotone = false;
+    let args = std::env::args().skip(1);
+
+    for arg in args {
+        match arg.as_str() {
+            "--list" => {
+                let history = storage::TargetHistory::load()?;
+                history.print_recent();
+                return Ok(());
+            }
+            "--select" | "-s" => {
+                let history = storage::TargetHistory::load()?;
+                target_arg = Some(history.fuzzy_select()?);
+            }
+            "--monotone" | "-m" => {
+                monotone = true;
+            }
+            _ => {
+                if !arg.starts_with('-') {
+                    target_arg = Some(arg);
+                }
+            }
         }
-        Some(arg) if arg == "--select" || arg == "-s" => {
-            let history = storage::TargetHistory::load()?;
-            history.fuzzy_select()?
-        }
-        Some(target) => target,
+    }
+
+    // Set theme mode
+    crate::theme::Theme::set_monotone(monotone);
+
+    let target = match target_arg {
+        Some(t) => t,
         None => {
             let history = storage::TargetHistory::load()?;
             if history.is_empty() {

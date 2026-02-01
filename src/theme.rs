@@ -1,61 +1,133 @@
 use ratatui::style::Color;
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static MONOTONE: AtomicBool = AtomicBool::new(false);
 
 /// Blacksite Theme - Minimal / Professional / Dark
 pub struct Theme;
 
 #[allow(dead_code)]
 impl Theme {
+    pub fn set_monotone(enabled: bool) {
+        MONOTONE.store(enabled, Ordering::Relaxed);
+    }
+
+    pub fn is_monotone() -> bool {
+        MONOTONE.load(Ordering::Relaxed)
+    }
+
     // Main colors
-    pub const BG: Color = Color::Rgb(14, 15, 17);           // #0e0f11
-    pub const FG: Color = Color::Rgb(201, 201, 201);        // #c9c9c9
-    pub const TITLE: Color = Color::Rgb(229, 229, 229);     // #e5e5e5
-    pub const HI_FG: Color = Color::Rgb(255, 255, 255);     // #ffffff
+    pub fn bg() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(14, 15, 17) }
+    }
+    
+    pub fn fg() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(201, 201, 201) }
+    }
+    
+    pub fn title() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(229, 229, 229) }
+    }
+    
+    pub fn hi_fg() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(255, 255, 255) }
+    }
     
     // UI Elements
-    pub const DIVIDER: Color = Color::Rgb(42, 44, 47);      // #2a2c2f
-    pub const SELECTED_BG: Color = Color::Rgb(26, 28, 31);  // #1a1c1f
-    pub const SELECTED_FG: Color = Color::Rgb(255, 255, 255); // #ffffff
-    pub const BOX: Color = Color::Rgb(42, 44, 47);          // #2a2c2f
+    pub fn divider() -> Color {
+        if Self::is_monotone() { Color::DarkGray } else { Color::Rgb(42, 44, 47) }
+    }
+    
+    pub fn selected_bg() -> Color {
+        if Self::is_monotone() { Color::DarkGray } else { Color::Rgb(26, 28, 31) }
+    }
+    
+    pub fn selected_fg() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(255, 255, 255) }
+    }
+    
+    pub fn box_color() -> Color {
+        if Self::is_monotone() { Color::DarkGray } else { Color::Rgb(42, 44, 47) }
+    }
     
     // Status Colors
-    pub const IDLE: Color = Color::Rgb(74, 77, 82);         // #4a4d52
-    pub const MISSED: Color = Color::Rgb(100, 100, 100);    // Lighter grey for failures
-    pub const LOW: Color = Color::Rgb(143, 143, 143);       // #8f8f8f
-    pub const MEDIUM: Color = Color::Rgb(199, 162, 74);     // #c7a24a
-    pub const HIGH: Color = Color::Rgb(201, 75, 75);        // #c94b4b
-    pub const CRITICAL: Color = Color::Rgb(255, 59, 59);    // #ff3b3b
+    pub fn idle() -> Color {
+        if Self::is_monotone() { Color::DarkGray } else { Color::Rgb(74, 77, 82) }
+    }
     
-    // Network specific
-    pub const GOOD: Color = Color::Rgb(74, 122, 74);        // #4a7a4a (restrained green)
-    pub const WARN: Color = Color::Rgb(199, 162, 74);       // #c7a24a (muted yellow)
-    pub const CRIT: Color = Color::Rgb(255, 59, 59);        // #ff3b3b (hard red)
+    pub fn missed() -> Color {
+        if Self::is_monotone() { Color::DarkGray } else { Color::Rgb(100, 100, 100) }
+    }
+    
+    pub fn low() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(143, 143, 143) }
+    }
+    
+    pub fn medium() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(199, 162, 74) }
+    }
+    
+    pub fn high() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(201, 75, 75) }
+    }
+    
+    pub fn critical() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(255, 59, 59) }
+    }
+    
+    // Network specific (colors for text status)
+    pub fn good() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(74, 122, 74) }
+    }
+    
+    pub fn warn() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(199, 162, 74) }
+    }
+    
+    pub fn crit() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(255, 59, 59) }
+    }
     
     // Graph colors
-    pub const GRAPH_BG: Color = Color::Rgb(14, 15, 17);     // #0e0f11
-    pub const TEMP_START: Color = Color::Rgb(74, 122, 74);  // #4a7a4a
-    pub const TEMP_MID: Color = Color::Rgb(199, 162, 74);   // #c7a24a
-    pub const TEMP_END: Color = Color::Rgb(255, 59, 59);    // #ff3b3b
+    // In monotone, we just return Reset for everything so it draws in default color.
+    // The Braille characters themselves provide the density.
+    pub const TEMP_START: Color = Color::Rgb(74, 122, 74);
+    pub const TEMP_MID: Color = Color::Rgb(199, 162, 74);
+    pub const TEMP_END: Color = Color::Rgb(255, 59, 59);
     
-    // Key highlight color (btop-style)
-    pub const KEY_HIGHLIGHT: Color = Color::Rgb(100, 200, 255); // Cyan for keys
+    pub fn key_highlight() -> Color {
+        if Self::is_monotone() { Color::White } else { Color::Rgb(100, 200, 255) }
+    }
     
-    // Misc
-    pub const CLOCK: Color = Color::Rgb(143, 143, 143);     // #8f8f8f
-    pub const PROC_USER: Color = Color::Rgb(176, 176, 176); // #b0b0b0
+    pub fn clock() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(143, 143, 143) }
+    }
+    
+    pub fn proc_user() -> Color {
+        if Self::is_monotone() { Color::Reset } else { Color::Rgb(176, 176, 176) }
+    }
 
     /// Get color for latency value
     pub fn latency_color(ms: f64) -> Color {
+        if Self::is_monotone() {
+            return Color::Reset;
+        }
+        
         if ms < 30.0 {
-            Self::GOOD
+            Self::good()
         } else if ms < 100.0 {
-            Self::WARN
+            Self::warn()
         } else {
-            Self::CRIT
+            Self::crit()
         }
     }
 
     /// Get gradient color for graph (0.0 to 1.0 ratio)
     pub fn graph_gradient(ratio: f64) -> Color {
+        if Self::is_monotone() {
+            return Color::Reset;
+        }
+
         let ratio = ratio.clamp(0.0, 1.0);
         if ratio < 0.5 {
             // Interpolate between TEMP_START and TEMP_MID
@@ -83,13 +155,16 @@ impl Theme {
 
     /// Quality rating color
     pub fn quality_color(quality: &str) -> Color {
+        if Self::is_monotone() {
+            return Color::Reset;
+        }
         match quality {
-            "EXCELLENT" => Self::GOOD,
-            "GOOD" => Self::GOOD,
-            "FAIR" => Self::WARN,
-            "POOR" => Self::HIGH,
-            "OFFLINE" => Self::CRIT,
-            _ => Self::FG,
+            "EXCELLENT" => Self::good(),
+            "GOOD" => Self::good(),
+            "FAIR" => Self::warn(),
+            "POOR" => Self::high(),
+            "OFFLINE" => Self::crit(),
+            _ => Self::fg(),
         }
     }
 }

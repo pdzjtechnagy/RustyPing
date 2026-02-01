@@ -1,0 +1,9 @@
+Package: rustyping
+Version: 2.1.2
+Section: net
+Priority: optional
+Architecture: amd64
+Maintainer: pdzjtechnagy
+Description: Advanced TUI Ping Tool
+ RustyPing is a feature-rich, TUI-based ping tool written in Rust.
+ It provides real-time graphing, statistics, and network quality monitoring in a beautiful terminal interface.
