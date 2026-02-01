@@ -253,6 +253,13 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
 
     // BRAILLE CANVAS - High-resolution rendering!
     // Right-to-Left Scrolling: Newest data is on the RIGHT side.
+    
+    // Calculate the actual available width in braille dots.
+    // Each character cell contains 2 braille dot columns.
+    // We subtract 2 from width for borders (left/right).
+    let inner_width_chars = area.width.saturating_sub(2);
+    let canvas_width_dots = (inner_width_chars as f64) * 2.0;
+
     let canvas = Canvas::default()
         .block(
             Block::default()
@@ -261,33 +268,40 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Theme::BOX)),
         )
-        .marker(symbols::Marker::Braille)  // <-- BRAILLE RENDERING!
-        // IMPORTANT: To make bars touch side-by-side, we map the X-bounds to the exact number of data points.
-        // This ensures 1 unit in X coordinates = 1 data point width.
-        .x_bounds([0.0, data.len() as f64]) 
+        .marker(symbols::Marker::Braille)
+        // Set X bounds to match screen dot resolution exactly.
+        // This ensures 1.0 unit = 1 dot column.
+        .x_bounds([0.0, canvas_width_dots])
         .y_bounds([y_min, y_max])
-        .paint(|ctx| {
-            // Draw solid filled waveform graph (btop CPU-style) with gradient colors
+        .paint(move |ctx| {
+            // Iterate data points and map them to the RIGHT side of the canvas.
+            let data_len = points.len();
+            
             for (i, &(_, y)) in points.iter().enumerate() {
-                // Calculate position:
-                // We want the data to look contiguous. 
-                // Since x_bounds is [0, len], we just plot at index 'i'.
-                // 'points' is already sorted oldest -> newest.
-                // So i=0 is left, i=max is right.
+                // Calculate position relative to the RIGHT edge.
+                // i=0 (oldest) -> farthest from right
+                // i=last (newest) -> at the right edge
                 
-                let x_pos = i as f64;
-
-                let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
-                let color = Theme::graph_gradient(ratio);
+                // Distance from the newest point (0 for newest, 1 for second newest, etc)
+                let age = data_len - 1 - i;
                 
-                // Draw thin line (1-dot wide) from bottom to data point
-                ctx.draw(&CanvasLine {
-                    x1: x_pos, 
-                    y1: y_min,
-                    x2: x_pos,
-                    y2: y,
-                    color,
-                });
+                // Position on screen (right_edge - age)
+                // We use 0.5 offset to center in the dot column if needed, but integers work fine for braille grid.
+                let x_pos = canvas_width_dots - 1.0 - (age as f64);
+                
+                // Only draw if it's visible on screen (x >= 0)
+                if x_pos >= 0.0 {
+                    let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
+                    let color = Theme::graph_gradient(ratio);
+                    
+                    ctx.draw(&CanvasLine {
+                        x1: x_pos, 
+                        y1: y_min,
+                        x2: x_pos,
+                        y2: y,
+                        color,
+                    });
+                }
             }
         });
 
