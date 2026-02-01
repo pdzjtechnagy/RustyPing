@@ -164,25 +164,18 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                             }
                         }
                         KeyCode::Up => {
-                            if !app.show_settings {
-                                app.increase_speed(); // Faster (Lower Interval)
+                            if app.show_settings {
+                                app.settings_navigate_up();
+                            } else {
+                                app.increase_speed();
                             }
                         }
                         KeyCode::Down => {
-                            if !app.show_settings {
-                                app.decrease_speed(); // Slower (Higher Interval)
+                            if app.show_settings {
+                                app.settings_navigate_down();
+                            } else {
+                                app.decrease_speed();
                             }
-                        }
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
-                                app.reset_stats();
-                            }
-                        }
-                        // Settings navigation
-                        KeyCode::Up if app.show_settings => {
-                            app.settings_navigate_up();
-                        }
-                        KeyCode::Down if app.show_settings => {
-                            app.settings_navigate_down();
                         }
                         KeyCode::Enter if app.show_settings => {
                             app.settings_toggle_selected();

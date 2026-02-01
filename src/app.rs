@@ -134,7 +134,6 @@ impl App {
             self.config.ping_interval_ms = new_interval;
         }
     }
-}
 
     // TODO: Implement view switching when multi-target is added
     // pub fn switch_view(&mut self, _view: u8) {
