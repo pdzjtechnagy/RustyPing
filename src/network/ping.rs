@@ -43,6 +43,21 @@ impl PingMonitor {
         })
     }
 
+    pub fn set_max_history(&mut self, new_size: usize) {
+        if new_size == self.max_history {
+            return;
+        }
+
+        self.max_history = new_size;
+        
+        // If shrinking, truncate older data
+        while self.history.len() > new_size {
+            self.history.pop_front();
+        }
+        
+        // If growing, we just let it fill up naturally
+    }
+
     pub async fn ping(&mut self) -> Result<()> {
         let mut pinger = self.client.pinger(self.target_addr, PingIdentifier(rand::random())).await;
         

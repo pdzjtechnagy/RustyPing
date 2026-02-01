@@ -99,6 +99,43 @@ impl App {
         Ok(())
     }
 
+    pub fn increase_history(&mut self) {
+        // Increase by 10 seconds
+        let new_len = self.config.graph_history_length + 10;
+        if new_len <= 600 { // Max 10 minutes
+            self.config.graph_history_length = new_len;
+            self.ping_monitor.set_max_history(new_len);
+        }
+    }
+
+    pub fn decrease_history(&mut self) {
+        // Decrease by 10 seconds
+        let new_len = self.config.graph_history_length.saturating_sub(10);
+        if new_len >= 30 { // Min 30 seconds
+            self.config.graph_history_length = new_len;
+            self.ping_monitor.set_max_history(new_len);
+        }
+    }
+
+    pub fn increase_speed(&mut self) {
+        // Decrease interval = Faster pings
+        // Min 50ms
+        let new_interval = self.config.ping_interval_ms.saturating_sub(50);
+        if new_interval >= 50 {
+            self.config.ping_interval_ms = new_interval;
+        }
+    }
+
+    pub fn decrease_speed(&mut self) {
+        // Increase interval = Slower pings
+        // Max 5000ms (5s)
+        let new_interval = self.config.ping_interval_ms + 50;
+        if new_interval <= 5000 {
+            self.config.ping_interval_ms = new_interval;
+        }
+    }
+}
+
     // TODO: Implement view switching when multi-target is added
     // pub fn switch_view(&mut self, _view: u8) {
     // }

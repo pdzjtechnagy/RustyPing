@@ -274,34 +274,40 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
         .x_bounds([0.0, canvas_width_dots])
         .y_bounds([y_min, y_max])
         .paint(move |ctx| {
-            // Iterate data points and map them to the RIGHT side of the canvas.
-            let data_len = points.len();
+            // Right-Side Justification Logic
+            // We align the newest data point to the absolute rightmost available dot column.
+            // Coordinate System: 0.0 (Left) -> canvas_width_dots (Right)
             
+            let data_len = points.len();
+            let right_edge = canvas_width_dots - 1.0; // The last visible column index
+
             for (i, &(_, y)) in points.iter().enumerate() {
-                // Calculate position relative to the RIGHT edge.
-                // i=0 (oldest) -> farthest from right
-                // i=last (newest) -> at the right edge
-                
-                // Distance from the newest point (0 for newest, 1 for second newest, etc)
+                // Calculate age: 0 = newest, 1 = second newest...
                 let age = data_len - 1 - i;
                 
-                // Position on screen (right_edge - age)
-                // We use 0.5 offset to center in the dot column if needed, but integers work fine for braille grid.
-                let x_pos = canvas_width_dots - 1.0 - (age as f64);
+                // Map to screen coordinate
+                let x_pos = right_edge - (age as f64);
                 
-                // Only draw if it's visible on screen (x >= 0)
-                if x_pos >= 0.0 {
-                    let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
-                    let color = Theme::graph_gradient(ratio);
-                    
-                    ctx.draw(&CanvasLine {
-                        x1: x_pos, 
-                        y1: y_min,
-                        x2: x_pos,
-                        y2: y,
-                        color,
-                    });
+                // Optimization: Skip points that are off the left side of the screen
+                if x_pos < 0.0 {
+                    continue;
                 }
+
+                // Ensure strict integer alignment for crisp rendering
+                let x_final = x_pos.floor();
+
+                let ratio = if y_max > 0.0 { (y / y_max).min(1.0) } else { 0.0 };
+                let color = Theme::graph_gradient(ratio);
+                
+                // Draw a vertical line from bottom to value
+                // Using the same X for x1 and x2 ensures a 1-dot wide vertical line.
+                ctx.draw(&CanvasLine {
+                    x1: x_final, 
+                    y1: y_min,
+                    x2: x_final,
+                    y2: y,
+                    color,
+                });
             }
         });
 
@@ -486,6 +492,19 @@ fn draw_footer(f: &mut Frame, app: &App, area: Rect) {
             format!("{}", stats.total_pings),
             Style::default().fg(Theme::FG),
         ),
+        Span::raw(" │ "),
+        Span::styled("Int: ", Style::default().fg(Theme::LOW)),
+        Span::styled(
+            format!("{}ms", app.config.ping_interval_ms),
+            Style::default().fg(Theme::HI_FG),
+        ),
+        Span::raw(" (↑↓) │ "),
+        Span::styled("Hist: ", Style::default().fg(Theme::LOW)),
+        Span::styled(
+            format!("{}s", app.config.graph_history_length),
+            Style::default().fg(Theme::HI_FG),
+        ),
+        Span::raw(" (←→)"),
     ]);
 
     let text = Line::from(spans);

@@ -151,6 +151,32 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                                 app.reset_stats();
                             }
                         }
+                        
+                        // Dynamic Controls (Arrow Keys)
+                        KeyCode::Right => {
+                            if !app.show_settings {
+                                app.increase_history();
+                            }
+                        }
+                        KeyCode::Left => {
+                            if !app.show_settings {
+                                app.decrease_history();
+                            }
+                        }
+                        KeyCode::Up => {
+                            if !app.show_settings {
+                                app.increase_speed(); // Faster (Lower Interval)
+                            }
+                        }
+                        KeyCode::Down => {
+                            if !app.show_settings {
+                                app.decrease_speed(); // Slower (Higher Interval)
+                            }
+                        }
+                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                                app.reset_stats();
+                            }
+                        }
                         // Settings navigation
                         KeyCode::Up if app.show_settings => {
                             app.settings_navigate_up();
