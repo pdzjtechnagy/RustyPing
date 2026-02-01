@@ -140,10 +140,14 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
     let stats = app.ping_monitor.stats();
 
     // Enhanced header with more information
+    let ip_display = app.public_ip.as_deref().unwrap_or("Fetching IP...");
+    
     let text = vec![Line::from(vec![
         Span::styled(" RustyPing ", Style::default().fg(Theme::TITLE).add_modifier(Modifier::BOLD)),
         Span::raw("│"),
-        Span::styled(format!(" {} ", &app.target), Style::default().fg(Theme::HI_FG)),
+        Span::styled(format!(" Client: {ip_display} "), Style::default().fg(Theme::LOW)),
+        Span::raw("│"),
+        Span::styled(format!(" Target: {} ", &app.target), Style::default().fg(Theme::HI_FG)),
         Span::raw("│"),
         Span::styled(" ● ", Style::default().fg(status_color)),
         Span::styled(quality, Style::default().fg(status_color).add_modifier(Modifier::BOLD)),
@@ -234,6 +238,10 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     // Calculate time window label
     let time_window = format!("last {}s", data.len());
 
+    // IP Display
+    let ip_display = app.public_ip.as_deref().unwrap_or("...");
+    let title_text = format!(" LATENCY ({time_window}) | Client: {ip_display} ");
+
     // BRAILLE CANVAS - High-resolution rendering!
     // Right-to-Left Scrolling: Newest data is on the RIGHT side.
     
@@ -246,7 +254,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     let canvas = Canvas::default()
         .block(
             Block::default()
-                .title(format!(" LATENCY ({time_window}) "))
+                .title(title_text)
                 .title_style(Style::default().fg(Theme::TITLE).add_modifier(Modifier::BOLD))
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Theme::BOX)),

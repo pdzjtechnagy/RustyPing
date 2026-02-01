@@ -18,6 +18,8 @@ pub struct App {
     // Features
     pub speedtest: Option<SpeedTest>,
     pub portscan: Option<PortScanner>,
+    pub public_ip: Option<String>,
+    pub ip_rx: Option<tokio::sync::mpsc::Receiver<String>>,
     
     // Config
     pub config: Config,
@@ -33,6 +35,21 @@ impl App {
             config.graph_history_length,
         ).await?;
 
+        // Start async IP fetch
+        let (tx, rx) = tokio::sync::mpsc::channel(1);
+        tokio::spawn(async move {
+            let client = reqwest::Client::builder()
+                .timeout(Duration::from_secs(5))
+                .build()
+                .unwrap_or_default();
+            
+            let ip = match client.get("https://api.ipify.org").send().await {
+                Ok(resp) => resp.text().await.unwrap_or_else(|_| "Unknown".to_string()),
+                Err(_) => "Unknown".to_string(),
+            };
+            let _ = tx.send(ip).await;
+        });
+
         Ok(Self {
             target,
             ping_monitor,
@@ -44,11 +61,21 @@ impl App {
             settings_selected: 0,
             speedtest: None,
             portscan: None,
+            public_ip: None,
+            ip_rx: Some(rx),
             config,
         })
     }
 
     pub async fn tick(&mut self) -> Result<()> {
+        // Check for public IP update
+        if let Some(rx) = &mut self.ip_rx {
+            if let Ok(ip) = rx.try_recv() {
+                self.public_ip = Some(ip);
+                self.ip_rx = None; // Channel closed, job done
+            }
+        }
+
         // Ping at configured interval
         if self.last_ping.elapsed() >= Duration::from_millis(self.config.ping_interval_ms) {
             self.ping_monitor.ping().await?;
