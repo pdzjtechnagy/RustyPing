@@ -140,12 +140,12 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
     let stats = app.ping_monitor.stats();
 
     // Enhanced header with more information
-    let ip_display = app.public_ip.as_deref().unwrap_or("Fetching IP...");
+    let ip_display = app.ping_monitor.get_target_addr().to_string();
     
     let text = vec![Line::from(vec![
         Span::styled(" RustyPing ", Style::default().fg(Theme::TITLE).add_modifier(Modifier::BOLD)),
         Span::raw("│"),
-        Span::styled(format!(" Client: {ip_display} "), Style::default().fg(Theme::LOW)),
+        Span::styled(format!(" Target IP: {ip_display} "), Style::default().fg(Theme::LOW)),
         Span::raw("│"),
         Span::styled(format!(" Target: {} ", &app.target), Style::default().fg(Theme::HI_FG)),
         Span::raw("│"),
@@ -239,8 +239,8 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     let time_window = format!("last {}s", data.len());
 
     // IP Display
-    let ip_display = app.public_ip.as_deref().unwrap_or("...");
-    let title_text = format!(" LATENCY ({time_window}) | Client: {ip_display} ");
+    let ip_display = app.ping_monitor.get_target_addr().to_string();
+    let title_text = format!(" LATENCY ({time_window}) | Target IP: {ip_display} ");
 
     // BRAILLE CANVAS - High-resolution rendering!
     // Right-to-Left Scrolling: Newest data is on the RIGHT side.

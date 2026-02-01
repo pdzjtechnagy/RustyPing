@@ -43,6 +43,10 @@ impl PingMonitor {
         })
     }
 
+    pub fn get_target_addr(&self) -> IpAddr {
+        self.target_addr
+    }
+
     pub fn set_max_history(&mut self, new_size: usize) {
         if new_size == self.max_history {
             return;

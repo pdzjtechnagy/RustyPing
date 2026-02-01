@@ -30,7 +30,7 @@ impl Default for Config {
         Self {
             pause_ping_during_speedtest: true,
             graph_history_length: 200,
-            ping_interval_ms: 1000,
+            ping_interval_ms: 500,
             show_jitter_panel: true,
             show_history_panel: true,
             speedtest_provider: "ookla".to_string(),
