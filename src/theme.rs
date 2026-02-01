@@ -55,7 +55,7 @@ impl Theme {
 
     /// Get gradient color for graph (0.0 to 1.0 ratio)
     pub fn graph_gradient(ratio: f64) -> Color {
-        let ratio = ratio.min(1.0).max(0.0);
+        let ratio = ratio.clamp(0.0, 1.0);
         if ratio < 0.5 {
             // Interpolate between TEMP_START and TEMP_MID
             let t = ratio * 2.0;
@@ -68,7 +68,7 @@ impl Theme {
     }
 
     fn interpolate(c1: Color, c2: Color, t: f64) -> Color {
-        let t = t.min(1.0).max(0.0);
+        let t = t.clamp(0.0, 1.0);
         if let (Color::Rgb(r1, g1, b1), Color::Rgb(r2, g2, b2)) = (c1, c2) {
             Color::Rgb(
                 (r1 as f64 + (r2 as f64 - r1 as f64) * t) as u8,

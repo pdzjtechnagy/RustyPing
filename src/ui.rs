@@ -83,7 +83,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .split(area);
 
     // Safe access to chunks (in case layout fails or is different)
-    if let Some(chunk) = chunks.get(0) { draw_header(f, app, *chunk); }
+    if let Some(chunk) = chunks.first() { draw_header(f, app, *chunk); }
     if let Some(chunk) = chunks.get(1) { draw_latency_graph(f, app, *chunk); }
     
     // Logic to handle variable chunk indices based on panels
@@ -246,7 +246,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     let canvas = Canvas::default()
         .block(
             Block::default()
-                .title(format!(" LATENCY ({}) ", time_window))
+                .title(format!(" LATENCY ({time_window}) "))
                 .title_style(Style::default().fg(Theme::TITLE).add_modifier(Modifier::BOLD))
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Theme::BOX)),
@@ -730,7 +730,7 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
             ]),
             Line::from(vec![
                 Span::styled(
-                    format!("Progress: {}/{} ({:.0}%)", current, total, progress_pct),
+                    format!("Progress: {current}/{total} ({progress_pct:.0}%)"),
                     Style::default().fg(Theme::LOW),
                 ),
             ]),

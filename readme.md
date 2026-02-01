@@ -12,6 +12,7 @@
 *   **Comprehensive Stats**: Tracks min, max, average latency, jitter, and packet loss in real-time.
 *   **Integrated Speed Test**: Built-in upload and download bandwidth testing (powered by Cloudflare).
 *   **Port Scanner**: Fast, asynchronous TCP port scanner for common services.
+*   **Ultra-Compact Mode**: Automatically switches to a minimal graph-only view for very small terminal windows (e.g., 20x5), perfect for tiling window managers.
 *   **Target History**: Remembers your recent targets and their health stats.
 *   **Professional UI**: "Blacksite" dark theme optimized for long monitoring sessions.
 *   **Cross-Platform**: Works natively on Windows, Linux, and macOS.

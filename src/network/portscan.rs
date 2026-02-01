@@ -34,7 +34,7 @@ impl PortScanner {
             addr
         } else {
             use tokio::net::lookup_host;
-            let mut addrs = lookup_host(format!("{}:0", target)).await?;
+            let mut addrs = lookup_host(format!("{target}:0")).await?;
             addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
         };
 

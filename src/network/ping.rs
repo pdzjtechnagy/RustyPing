@@ -23,7 +23,7 @@ impl PingMonitor {
             addr
         } else {
             use tokio::net::lookup_host;
-            let mut addrs = lookup_host(format!("{}:0", target)).await?;
+            let mut addrs = lookup_host(format!("{target}:0")).await?;
             addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
         };
 
@@ -145,7 +145,7 @@ impl PingMonitor {
         };
 
         let stability = if avg_response > 0.0 {
-            (100.0 - (jitter / avg_response * 100.0)).max(0.0).min(100.0)
+            (100.0 - (jitter / avg_response * 100.0)).clamp(0.0, 100.0)
         } else {
             100.0
         };

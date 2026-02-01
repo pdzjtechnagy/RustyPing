@@ -38,21 +38,11 @@ impl Default for Config {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct TargetHistory {
     pub entries: Vec<TargetEntry>,
     pub favorites: Vec<String>,
     pub config: Config,
-}
-
-impl Default for TargetHistory {
-    fn default() -> Self {
-        Self {
-            entries: Vec::new(),
-            favorites: Vec::new(),
-            config: Config::default(),
-        }
-    }
 }
 
 impl TargetHistory {
@@ -113,7 +103,7 @@ impl TargetHistory {
         for (i, entry) in self.entries.iter().take(10).enumerate() {
             let alias = entry.alias.as_deref().unwrap_or("");
             let stats = if let (Some(lat), Some(sr)) = (entry.avg_latency, entry.success_rate) {
-                format!(" ({:.1}ms, {:.1}%)", lat, sr)
+                format!(" ({lat:.1}ms, {sr:.1}%)")
             } else {
                 String::new()
             };
@@ -187,7 +177,7 @@ impl TargetHistory {
         let lower = input.to_lowercase();
         if let Some(entry) = self.entries.iter().find(|e| {
             e.target.to_lowercase().contains(&lower)
-                || e.alias.as_ref().map_or(false, |a| a.to_lowercase().contains(&lower))
+                || e.alias.as_ref().is_some_and(|a| a.to_lowercase().contains(&lower))
         }) {
             return Ok(entry.target.clone());
         }

@@ -1,5 +1,4 @@
 use anyhow::Result;
-use reqwest;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use futures_util::StreamExt;
@@ -143,7 +142,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let client = match client_res {
         Ok(c) => c,
         Err(e) => {
-            let _ = tx.send(SpeedTestEvent::Error(format!("Failed to create client: {}", e))).await;
+            let _ = tx.send(SpeedTestEvent::Error(format!("Failed to create client: {e}"))).await;
             return;
         }
     };
@@ -155,7 +154,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let response = match client.get(test_url).send().await {
         Ok(r) => r,
         Err(e) => {
-            let _ = tx.send(SpeedTestEvent::Error(format!("Network error: {}", e))).await;
+            let _ = tx.send(SpeedTestEvent::Error(format!("Network error: {e}"))).await;
             return;
         }
     };
@@ -172,7 +171,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         let chunk = match chunk_result {
             Ok(c) => c,
             Err(e) => {
-                let _ = tx.send(SpeedTestEvent::Error(format!("Read error: {}", e))).await;
+                let _ = tx.send(SpeedTestEvent::Error(format!("Read error: {e}"))).await;
                 return;
             }
         };
@@ -219,7 +218,7 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let client = match reqwest::Client::builder().timeout(Duration::from_secs(60)).build() {
         Ok(c) => c,
         Err(e) => {
-            let _ = tx.send(SpeedTestEvent::Error(format!("Failed to create client: {}", e))).await;
+            let _ = tx.send(SpeedTestEvent::Error(format!("Failed to create client: {e}"))).await;
             return;
         }
     };
@@ -236,7 +235,7 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let response = match client.post(test_url).body(data).send().await {
         Ok(r) => r,
         Err(e) => {
-             let _ = tx.send(SpeedTestEvent::Error(format!("Network error: {}", e))).await;
+             let _ = tx.send(SpeedTestEvent::Error(format!("Network error: {e}"))).await;
              return;
         }
     };
