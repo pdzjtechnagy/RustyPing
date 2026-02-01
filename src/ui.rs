@@ -337,6 +337,10 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
             Span::styled("  Max:    ", Style::default().fg(Theme::low())),
             Span::styled(format!("{:>8.1} ms", stats.max_response), Style::default().fg(Theme::warn())),
         ]),
+        Line::from(vec![
+            Span::styled("  Jitter: ", Style::default().fg(Theme::low())),
+            Span::styled(format!("{:>8.1} ms", stats.jitter), Style::default().fg(Theme::fg())),
+        ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("Uptime:    ", Style::default().fg(Theme::good())),

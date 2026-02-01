@@ -2,10 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.1.2] - 2026-02-01
+## [v2.2.0] - 2026-02-01
 
 ### Added
-- **Monotone Mode**: New `--monotone` (`-m`) flag for high-contrast, color-free rendering. ideal for SSH, vintage terminals, and e-ink displays.
+- **CSV Logging**: New `--log <FILE>` argument to export ping results to a CSV file in real-time. Ideal for long-term monitoring and analysis.
+- **Jitter Statistics**: Added Jitter (Standard Deviation) metric to the main statistics panel, providing deeper insight into network stability.
+- **Monotone Mode**: New `--monotone` (`-m`) flag for high-contrast, color-free rendering. Ideal for SSH, vintage terminals, and e-ink displays.
 - **Platform Support**: 
   - **Alpine Linux**: Added static `musl` build support for zero-dependency deployment.
   - **Proxmox**: Verified compatibility for LXC containers.

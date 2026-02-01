@@ -3,6 +3,9 @@ use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
+use std::fs::{OpenOptions, File};
+use std::io::{BufWriter, Write};
+use chrono::Local;
 
 pub struct App {
     pub target: String,
@@ -13,6 +16,9 @@ pub struct App {
     // Background Task Channels
     pub ping_tx: mpsc::Sender<()>,
     pub ping_rx: mpsc::Receiver<PingResult>,
+
+    // Logging
+    pub log_writer: Option<BufWriter<File>>,
 
     // UI State
     pub show_settings: bool,
@@ -29,7 +35,7 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(target: String) -> Result<Self> {
+    pub async fn new(target: String, log_file: Option<String>) -> Result<Self> {
         let history = TargetHistory::load()?;
         let config = history.config.clone();
         
@@ -41,11 +47,28 @@ impl App {
             config.graph_history_length,
         );
 
+        // Initialize logger if requested
+        let log_writer = if let Some(path) = log_file {
+            let file = OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&path)?;
+            let mut writer = BufWriter::new(file);
+            // Write header if file is empty
+            if std::fs::metadata(&path)?.len() == 0 {
+                writeln!(writer, "Timestamp,Target,Latency(ms),Status")?;
+            }
+            Some(writer)
+        } else {
+            None
+        };
+
         Ok(Self {
             target,
             ping_monitor,
             ping_tx,
             ping_rx,
+            log_writer,
             start_time: Instant::now(),
             last_ping: Instant::now(),
             show_settings: false,
@@ -69,6 +92,16 @@ impl App {
 
         // Process incoming ping results
         while let Ok(result) = self.ping_rx.try_recv() {
+            // Log result if enabled
+            if let Some(writer) = &mut self.log_writer {
+                let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
+                let (ms, status) = match result {
+                    PingResult::Success(v) => (v, "Success"),
+                    PingResult::Timeout => (0.0, "Timeout"),
+                };
+                writeln!(writer, "{},{},{:.2},{}", timestamp, self.target, ms, status).ok();
+            }
+
             self.ping_monitor.process_result(result);
         }
 

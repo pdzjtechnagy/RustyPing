@@ -24,9 +24,10 @@ async fn main() -> Result<()> {
     // Parse CLI arguments
     let mut target_arg = None;
     let mut monotone = false;
-    let args = std::env::args().skip(1);
+    let mut log_file = None;
+    let mut args = std::env::args().skip(1);
 
-    for arg in args {
+    while let Some(arg) = args.next() {
         match arg.as_str() {
             "--list" => {
                 let history = storage::TargetHistory::load()?;
@@ -39,6 +40,14 @@ async fn main() -> Result<()> {
             }
             "--monotone" | "-m" => {
                 monotone = true;
+            }
+            "--log" => {
+                if let Some(path) = args.next() {
+                    log_file = Some(path);
+                } else {
+                    eprintln!("Error: --log requires a file path");
+                    return Ok(());
+                }
             }
             _ => {
                 if !arg.starts_with('-') {
@@ -85,7 +94,7 @@ async fn main() -> Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     // Create app
-    let mut app = App::new(target).await?;
+    let mut app = App::new(target, log_file).await?;
 
     // Run app
     let result = run_app(&mut terminal, &mut app).await;
