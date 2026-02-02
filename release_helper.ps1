@@ -46,8 +46,8 @@ Write-Host "---------------------------------------------------" -ForegroundColo
 # 5. Instructions for GitHub Release
 Write-Host "`n🌐 GitHub Release Instructions:" -ForegroundColor Cyan
 Write-Host "1. Go to: https://github.com/pdzjtechnagy/RustyPing/releases/new" -ForegroundColor White
-Write-Host "2. Select Tag: v2.3.0" -ForegroundColor White
-Write-Host "3. Title: v2.3.0 - CSV Logging & Jitter Metrics" -ForegroundColor White
+Write-Host "2. Select Tag: v2.3.1" -ForegroundColor White
+Write-Host "3. Title: v2.3.1 - Enhanced Documentation & Installer" -ForegroundColor White
 Write-Host "4. Copy contents from CHANGELOG.md into the description." -ForegroundColor White
 Write-Host "5. Upload the following binaries:" -ForegroundColor White
 Write-Host "   - target/release/rping.exe (Windows)" -ForegroundColor Gray

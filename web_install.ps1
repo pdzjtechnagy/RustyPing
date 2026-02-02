@@ -3,46 +3,81 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "
-██████╗ ██╗   ██╗███████╗████████╗██╗   ██╗██████╗ ██╗███╗   ██╗ ██████╗ 
-██╔══██╗██║   ██║██╔════╝╚══██╔══╝╚██╗ ██╔╝██╔══██╗██║████╗  ██║██╔════╝ 
-██████╔╝██║   ██║███████╗   ██║    ╚████╔╝ ██████╔╝██║██╔██╗ ██║██║  ███╗
-██╔══██╗██║   ██║╚════██║   ██║     ╚██╔╝  ██╔═══╝ ██║██║╚██╗██║██║   ██║
-██║  ██║╚██████╔╝███████║   ██║      ██║   ██║     ██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝
-_ _ _ ____ ___     _ _  _ ____ ___ ____ _    _    ____ ____ 
-| | | |___ |__]    | |\ | [__   |  |__| |    |    |___ |__/ 
-|_|_| |___ |__]    | | \| ___]  |  |  | |___ |___ |___ |  \ 
-" -ForegroundColor Cyan
+# --- UI Helpers ---
+
+function Show-Header {
+    Clear-Host
+    $cyan = [ConsoleColor]::Cyan
+    $white = [ConsoleColor]::White
+    
+    Write-Host "
+  ____            _         ____  _             
+ |  _ \ _   _ ___| |_ _   _|  _ \(_)_ __   __ _ 
+ | |_) | | | / __| __| | | | |_) | | '_ \ / _` |
+ |  _ <| |_| \__ \ |_| |_| |  __/| | | | | (_| |
+ |_| \_\\__,_|___/\__|\__, |_|   |_|_| |_|\__, |
+                      |___/               |___/ 
+    " -ForegroundColor $cyan
+    Write-Host "  :: NETWORK MONITORING SUITE v2.3.1 ::" -ForegroundColor $white
+    Write-Host ""
+}
+
+function Show-Step {
+    param([string]$Message, [int]$Step, [int]$Total)
+    Write-Host " [$Step/$Total] $Message" -ForegroundColor Yellow
+}
+
+function Show-Success {
+    param([string]$Message)
+    Write-Host " [OK] $Message" -ForegroundColor Green
+}
+
+function Show-Error {
+    param([string]$Title, [string]$Message, [string]$Command)
+    Write-Host ""
+    Write-Host " ┌────────────────────────────────────────────────────────────┐" -ForegroundColor Red
+    Write-Host " │ ERROR: $Title" -ForegroundColor Red
+    Write-Host " ├────────────────────────────────────────────────────────────┤" -ForegroundColor Red
+    Write-Host " │ $Message" -ForegroundColor White
+    if ($Command) {
+        Write-Host " │" -ForegroundColor Red
+        Write-Host " │ Run this command to fix:" -ForegroundColor White
+        Write-Host " │ > $Command" -ForegroundColor Cyan
+    }
+    Write-Host " └────────────────────────────────────────────────────────────┘" -ForegroundColor Red
+    Write-Host ""
+    exit 1
+}
+
+# --- Main Script ---
+
+Show-Header
 
 # 1. Check Prerequisites
-Write-Host "[*] Checking prerequisites..." -ForegroundColor Yellow
+Show-Step "Checking system requirements..." 1 5
 
+# Check Git
 if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
-    Write-Host "[!] Git is not installed." -ForegroundColor Red
-    Write-Host "    Please install Git: winget install Git.Git"
-    exit 1
+    Show-Error "Git not found" "RustyPing requires Git to download the source code." "winget install Git.Git"
 }
+Show-Success "Git found"
 
+# Check Rust
 if (-not (Get-Command "cargo" -ErrorAction SilentlyContinue)) {
-    Write-Host "[!] Rust is not installed." -ForegroundColor Red
-    Write-Host "    Please install Rust: winget install Rustlang.Rustup"
-    exit 1
+    Show-Error "Rust not found" "RustyPing requires the Rust toolchain." "winget install Rustlang.Rustup"
 }
+Show-Success "Rust toolchain found"
 
-# Check for C++ Build Tools (link.exe)
+# Check C++ Build Tools (link.exe)
 if (-not (Get-Command "link" -ErrorAction SilentlyContinue)) {
-    Write-Host "[!] C++ Build Tools (link.exe) not found." -ForegroundColor Red
-    Write-Host "    Rust on Windows requires the MSVC Linker." -ForegroundColor Red
-    Write-Host ""
-    Write-Host "    Please run the following command in an Administrator PowerShell:" -ForegroundColor Yellow
-    Write-Host "    winget install Microsoft.VisualStudio.2022.BuildTools --override `"--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart`"" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "    After installing, restart your terminal and try again."
-    exit 1
+    Show-Error "C++ Build Tools missing" `
+        "Rust on Windows requires the MSVC Linker (link.exe).`n │ You need the 'Desktop development with C++' workload." `
+        "winget install Microsoft.VisualStudio.2022.BuildTools --override `"--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart`""
 }
+Show-Success "MSVC Build Tools found"
 
 # 2. Setup Installation Directory
+Show-Step "Preparing workspace..." 2 4
 $repoUrl = "https://github.com/pdzjtechnagy/RustyPing.git"
 $tempDir = [System.IO.Path]::Combine($env:TEMP, "RustyPing_Install")
 
@@ -50,32 +85,47 @@ if (Test-Path $tempDir) {
     Remove-Item -Path $tempDir -Recurse -Force
 }
 New-Item -Path $tempDir -ItemType Directory | Out-Null
+Show-Success "Workspace ready at $tempDir"
 
 # 3. Clone Repository
-Write-Host "[*] Cloning RustyPing from GitHub..." -ForegroundColor Yellow
+Show-Step "Downloading source code..." 3 4
 Set-Location -Path $tempDir
 try {
-    git clone $repoUrl .
+    git clone $repoUrl . | Out-Null
+    Show-Success "Repository cloned"
 } catch {
-    Write-Host "[!] Failed to clone repository." -ForegroundColor Red
-    exit 1
+    Show-Error "Download Failed" "Could not clone the repository from GitHub." ""
 }
 
 # 4. Build and Install
-Write-Host "[*] Building and Installing RustyPing..." -ForegroundColor Yellow
-Write-Host "    This may take a few minutes..." -ForegroundColor Gray
+Show-Step "Compiling and installing (This takes 2-5 mins)..." 4 5
+Write-Host "     Please wait while Cargo compiles the binary." -ForegroundColor DarkGray
 
 try {
-    cargo install --path . --force
+    # Run cargo install and capture output to prevent clutter, but show errors if it fails
+    $result = cargo install --path . --force 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw $result
+    }
+    Show-Success "Compilation complete"
 } catch {
-    Write-Host "[!] Installation failed." -ForegroundColor Red
-    exit 1
+    Show-Error "Build Failed" "Cargo failed to compile RustyPing." "cd $tempDir; cargo build --release"
 }
 
 # 5. Cleanup
 Set-Location -Path $env:USERPROFILE
 Remove-Item -Path $tempDir -Recurse -Force
 
+# 6. Final Success Screen
 Write-Host ""
-Write-Host "[+] RustyPing has been successfully installed!" -ForegroundColor Green
-Write-Host "    You can now run it by typing: rping" -ForegroundColor Cyan
+Write-Host " ╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+Write-Host " ║                 INSTALLATION SUCCESSFUL!                   ║" -ForegroundColor Green
+Write-Host " ╚════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host ""
+Write-Host "  You can now run RustyPing from anywhere:" -ForegroundColor White
+Write-Host ""
+Write-Host "     rping" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  View the User Guides here:" -ForegroundColor White
+Write-Host "     $docDir" -ForegroundColor DarkGray
+Write-Host ""

@@ -1,3 +1,19 @@
+# Release Notes - RustyPing v2.3.1
+
+**Release Date:** 2026-02-02
+
+## 🔧 Maintenance & Accessibility Update
+
+RustyPing v2.3.1 focuses on improving the installation experience and ensuring documentation is accessible to all users.
+
+### ✨ Key Changes
+*   **Web Installer Upgrade**: The `web_install.ps1` script now includes a beautiful, cyberpunk-themed UI with progress tracking and error handling.
+*   **Documentation Integration**: The web installer now automatically downloads and saves the User Guides (`install_guide.md`, `quickstart.md`) to `~/.rustyping/docs/` for offline access.
+*   **Installation Matrix**: Updated `install_guide.md` with a ranked list of installation methods (Winget, GUI, Script, Choco) for the MSVC Build Tools.
+*   **Bug Fixes**: Resolved minor versioning inconsistencies across the codebase.
+
+---
+
 # Release Notes - RustyPing v2.3.0
 
 **Release Date:** 2026-02-01

@@ -17,6 +17,7 @@ pub struct MenuApp {
     list_state: ListState,
     selected_section: SelectionSection,
     theme: Theme,
+    show_help: bool,
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -50,6 +51,7 @@ impl MenuApp {
                 SelectionSection::History
             },
             theme,
+            show_help: false,
         }
     }
 
@@ -64,25 +66,51 @@ impl MenuApp {
 
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
+                    if self.show_help {
+                        // Close help on any key
+                        self.show_help = false;
+                        continue;
+                    }
+
                     match key.code {
                         KeyCode::Esc => return Ok(None),
+                        KeyCode::F(1) => self.show_help = true,
                         KeyCode::Enter => {
                             if !self.input.is_empty() {
-                                return Ok(Some(self.input.trim().to_string()));
+                                let val = self.input.trim();
+                                if val == "--help" || val == "-h" || val == "?" {
+                                    self.show_help = true;
+                                    self.input.clear();
+                                    self.selected_section = SelectionSection::Input;
+                                    continue;
+                                }
+                                return Ok(Some(val.to_string()));
                             }
                             if let Some(i) = self.list_state.selected() {
-                                match self.selected_section {
+                                let selection = match self.selected_section {
                                     SelectionSection::History => {
                                         if i < self.history.len() {
-                                            return Ok(Some(self.history[i].clone()));
+                                            Some(self.history[i].clone())
+                                        } else {
+                                            None
                                         }
                                     }
                                     SelectionSection::Defaults => {
                                         if i < self.defaults.len() {
-                                            return Ok(Some(self.defaults[i].clone()));
+                                            Some(self.defaults[i].clone())
+                                        } else {
+                                            None
                                         }
                                     }
-                                    _ => {}
+                                    _ => None,
+                                };
+
+                                if let Some(val) = selection {
+                                    if val == "--help" || val == "-h" || val == "?" {
+                                        self.show_help = true;
+                                        continue;
+                                    }
+                                    return Ok(Some(val));
                                 }
                             }
                         }
@@ -256,7 +284,7 @@ impl MenuApp {
             Line::from(vec![
                 Span::styled("Rusty", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
                 Span::styled("Ping", Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-                Span::raw(" v2.2.0"),
+                Span::raw(" v2.3.0"),
             ]),
             Line::from("High-performance network monitoring"),
         ];
@@ -341,6 +369,8 @@ impl MenuApp {
             Span::raw(" navigate • "),
             Span::styled("ENTER", Style::default().add_modifier(Modifier::BOLD)),
             Span::raw(" select • "),
+            Span::styled("F1", Style::default().add_modifier(Modifier::BOLD)),
+            Span::raw(" help • "),
             Span::styled("ESC", Style::default().add_modifier(Modifier::BOLD)),
             Span::raw(" quit"),
         ]);
@@ -348,5 +378,58 @@ impl MenuApp {
             .alignment(Alignment::Center)
             .style(Style::default().fg(self.theme.low));
         f.render_widget(footer, chunks[3]);
+
+        if self.show_help {
+            let help_area = centered_rect; // Reuse the main centered rect or make a new one
+            let help_block = Block::default()
+                .borders(Borders::ALL)
+                .title(Span::styled(" Help & Controls ", Style::default().fg(self.theme.title).add_modifier(Modifier::BOLD)))
+                .border_style(Style::default().fg(self.theme.hi_fg));
+            
+            f.render_widget(Clear, help_area); // Clear background
+            f.render_widget(help_block.clone(), help_area);
+
+            let help_chunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(1)
+                .constraints([
+                    Constraint::Length(2), // Intro
+                    Constraint::Length(8), // Startup Controls
+                    Constraint::Length(8), // App Controls
+                    Constraint::Min(1),    // Footer
+                ])
+                .split(help_block.inner(help_area));
+
+            let intro = Paragraph::new("RustyPing is a high-performance network monitoring tool.\nSelect a target to begin monitoring.")
+                .alignment(Alignment::Center)
+                .style(Style::default().fg(self.theme.fg));
+            f.render_widget(intro, help_chunks[0]);
+
+            let startup_controls = vec![
+                Line::from(Span::styled("Startup Menu Controls:", Style::default().add_modifier(Modifier::BOLD).fg(self.theme.hi_fg))),
+                Line::from(vec![Span::styled("  TAB        ", Style::default().fg(self.theme.fg)), Span::raw("Cycle between Input, History, and Defaults")]),
+                Line::from(vec![Span::styled("  ARROWS     ", Style::default().fg(self.theme.fg)), Span::raw("Navigate lists or move selection")]),
+                Line::from(vec![Span::styled("  ENTER      ", Style::default().fg(self.theme.fg)), Span::raw("Confirm selection / Start")]),
+                Line::from(vec![Span::styled("  F1 / ?     ", Style::default().fg(self.theme.fg)), Span::raw("Toggle this help menu")]),
+                Line::from(vec![Span::styled("  ESC        ", Style::default().fg(self.theme.fg)), Span::raw("Quit Application")]),
+            ];
+            f.render_widget(Paragraph::new(startup_controls).style(Style::default().fg(self.theme.low)), help_chunks[1]);
+
+            let app_controls = vec![
+                Line::from(Span::styled("Application Controls (during monitoring):", Style::default().add_modifier(Modifier::BOLD).fg(self.theme.hi_fg))),
+                Line::from(vec![Span::styled("  Q          ", Style::default().fg(self.theme.fg)), Span::raw("Quit monitoring")]),
+                Line::from(vec![Span::styled("  S          ", Style::default().fg(self.theme.fg)), Span::raw("Start Speedtest")]),
+                Line::from(vec![Span::styled("  P          ", Style::default().fg(self.theme.fg)), Span::raw("Start Port Scan")]),
+                Line::from(vec![Span::styled("  J          ", Style::default().fg(self.theme.fg)), Span::raw("Toggle Jitter Graph")]),
+                Line::from(vec![Span::styled("  H          ", Style::default().fg(self.theme.fg)), Span::raw("Toggle History Panel")]),
+                Line::from(vec![Span::styled("  R          ", Style::default().fg(self.theme.fg)), Span::raw("Reset Statistics")]),
+            ];
+            f.render_widget(Paragraph::new(app_controls).style(Style::default().fg(self.theme.low)), help_chunks[2]);
+
+            let close_hint = Paragraph::new("Press any key to close help...")
+                .alignment(Alignment::Center)
+                .style(Style::default().fg(self.theme.low).add_modifier(Modifier::ITALIC));
+            f.render_widget(close_hint, help_chunks[3]);
+        }
     }
 }

@@ -1,6 +1,6 @@
 @echo off
 echo ============================================
-echo   RustyPing 2.0 Build Script
+echo   RustyPing v2.3.1 Build Script
 echo ============================================
 echo.
 

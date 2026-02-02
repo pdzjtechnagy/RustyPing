@@ -15,17 +15,83 @@
 
 ## 🚀 Step-by-Step Installation (Fresh Windows 11 25H2)
 
-### Step 1: Install Prerequisites
+### Step 1: Install MSVC Build Tools (The Hard Part)
 
-```cmd
-# Install Rust
-winget install Rustlang.Rustup
+Rust on Windows requires the **MSVC v143 - VS 2022 C++ x64/x86 build tools**. This is the compiler and linker backend.
 
-# Install Visual Studio Build Tools (if needed)
-winget install Microsoft.VisualStudio.2022.BuildTools
+We have ranked the installation methods from **Easiest** to **Most Complex**.
+
+#### 🥇 Level 1: The "One-Liner" (Winget) - **Recommended**
+*Best for: Users who want it done fast with zero clicking.*
+
+Copy and run this **exact** command in PowerShell. It passes arguments directly to the installer to select the C++ workload automatically.
+
+```powershell
+winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
 
-**Close and reopen your terminal after installing Rust!**
+*   **--passive**: Shows a progress bar but requires no clicks.
+*   **--wait**: Waits for the install to finish before returning control.
+*   **--add ...VCTools**: Selects the "Desktop development with C++" workload (includes MSVC v143).
+*   **--includeRecommended**: Adds the Windows SDK (critical for network programming).
+
+---
+
+#### 🥈 Level 2: The "Visual" Way (GUI Installer)
+*Best for: Users who want to see exactly what they are installing.*
+
+1.  **Download**: [Visual Studio 2022 Build Tools](https://aka.ms/vs/17/release/vs_buildtools.exe).
+2.  **Run**: Launch `vs_buildtools.exe`.
+3.  **Workloads Tab**:
+    *   Check the box for **"Desktop development with C++"**.
+4.  **Installation Details (Right Panel)**:
+    *   Ensure **"MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)"** is checked.
+    *   Ensure **"Windows 11 SDK (10.0.xxxxx.x)"** is checked.
+5.  **Action**: Click the **Install** button in the bottom right.
+
+---
+
+#### 🥉 Level 3: The "Automator" (PowerShell Script)
+*Best for: IT Admins or setting up a new PC automatically.*
+
+Save this as `install_tools.ps1` and run it as Administrator. It downloads the installer and runs it silently.
+
+```powershell
+# URL for the latest VS 2022 Build Tools Bootstrapper
+$url = "https://aka.ms/vs/17/release/vs_buildtools.exe"
+$out = "$env:TEMP\vs_buildtools.exe"
+
+Write-Host "Downloading VS Build Tools..." -ForegroundColor Cyan
+Invoke-WebRequest -Uri $url -OutFile $out
+
+Write-Host "Installing MSVC v143 and SDK... (This will take a while)" -ForegroundColor Cyan
+# --norestart prevents rebooting automatically
+# --quiet hides the UI completely (use --passive to see progress)
+Start-Process -FilePath $out -ArgumentList "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended" -Wait
+
+Write-Host "Installation Complete!" -ForegroundColor Green
+```
+
+---
+
+#### 🏅 Level 4: The "Package Manager" (Chocolatey)
+*Best for: Users who already use Chocolatey.*
+
+```powershell
+choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
+```
+
+---
+
+### Step 1.5: Install Rust (If not installed)
+
+Once the Build Tools are ready, install Rust itself:
+
+```powershell
+winget install Rustlang.Rustup
+```
+
+**⚠️ CRITICAL: Close and reopen your terminal after installing Rust to refresh your PATH!**
 
 ### Step 2: Create Project Structure
 
@@ -392,7 +458,7 @@ Once working:
 4. Press `P` to run port scan (stub for now)
 5. Monitor different targets to build history
 
-## 📝 Status: v2.0 Core Complete
+## 📝 Status: v2.3.1 - Production Ready
 
 ✅ Working:
 

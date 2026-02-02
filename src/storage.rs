@@ -74,6 +74,10 @@ impl TargetHistory {
     }
 
     pub fn add_target(&mut self, target: &str) {
+        if target == "--help" || target == "-h" || target == "?" {
+            return;
+        }
+
         // Check if target exists
         if let Some(entry) = self.entries.iter_mut().find(|e| e.target == target) {
             entry.last_used = Utc::now();
