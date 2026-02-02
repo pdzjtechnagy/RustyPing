@@ -7,6 +7,16 @@ use std::fs::{OpenOptions, File};
 use std::io::{BufWriter, Write};
 use chrono::Local;
 
+use crate::theme::Theme;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[allow(dead_code)]
+pub enum AppTab {
+    Monitor,
+    Diagnostics,
+    Settings,
+}
+
 pub struct App {
     pub target: String,
     pub ping_monitor: PingMonitor,
@@ -21,6 +31,9 @@ pub struct App {
     pub log_writer: Option<BufWriter<File>>,
 
     // UI State
+    pub theme: Theme,
+    #[allow(dead_code)]
+    pub current_tab: AppTab,
     pub show_settings: bool,
     pub show_jitter: bool,
     pub show_history: bool,
@@ -35,7 +48,7 @@ pub struct App {
 }
 
 impl App {
-    pub async fn new(target: String, log_file: Option<String>) -> Result<Self> {
+    pub async fn new(target: String, log_file: Option<String>, monotone: bool) -> Result<Self> {
         let history = TargetHistory::load()?;
         let config = history.config.clone();
         
@@ -71,6 +84,8 @@ impl App {
             log_writer,
             start_time: Instant::now(),
             last_ping: Instant::now(),
+            theme: if monotone { Theme::monotone() } else { Theme::blacksite() },
+            current_tab: AppTab::Monitor,
             show_settings: false,
             show_jitter: config.show_jitter_panel,
             show_history: config.show_history_panel,

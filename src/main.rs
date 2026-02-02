@@ -1,4 +1,5 @@
 mod app;
+mod menu;
 mod network;
 mod storage;
 mod theme;
@@ -7,6 +8,7 @@ mod ui;
 mod tests;
 
 use app::App;
+use menu::MenuApp;
 use anyhow::Result;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
@@ -17,7 +19,31 @@ use ratatui::{
     backend::CrosstermBackend,
     Terminal,
 };
-use std::io::{self, Write};
+use std::io::{self};
+
+fn print_help() {
+    println!("RustyPing v2.3.0 - High-performance network monitoring tool");
+    println!();
+    println!("Usage: rping [OPTIONS] [TARGET]");
+    println!();
+    println!("Arguments:");
+    println!("  [TARGET]      IP address or hostname to monitor");
+    println!();
+    println!("Options:");
+    println!("  -h, --help    Print this help message");
+    println!("  --list        List recent targets");
+    println!("  -m, --monotone Force monochrome mode");
+    println!("  --log <FILE>  Log statistics to a CSV file");
+    println!();
+    println!("Controls:");
+    println!("  q, Q          Quit");
+    println!("  s, S          Start Speedtest");
+    println!("  p, P          Start Port Scan");
+    println!("  j, J          Toggle Jitter Panel");
+    println!("  h, H          Toggle History Panel");
+    println!("  r, R          Reset Statistics");
+    println!("  Arrows        Adjust graph scale / history");
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -29,14 +55,14 @@ async fn main() -> Result<()> {
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
+            "--help" | "-h" => {
+                print_help();
+                return Ok(());
+            }
             "--list" => {
                 let history = storage::TargetHistory::load()?;
                 history.print_recent();
                 return Ok(());
-            }
-            "--select" | "-s" => {
-                let history = storage::TargetHistory::load()?;
-                target_arg = Some(history.fuzzy_select()?);
             }
             "--monotone" | "-m" => {
                 monotone = true;
@@ -60,44 +86,52 @@ async fn main() -> Result<()> {
     // Set theme mode
     crate::theme::Theme::set_monotone(monotone);
 
-    let target = match target_arg {
-        Some(t) => t,
-        None => {
-            let history = storage::TargetHistory::load()?;
-            if history.is_empty() {
-                print!("Enter target IP or hostname: ");
-                io::stdout().flush()?;
-                let mut input = String::new();
-                io::stdin().read_line(&mut input)?;
-                input.trim().to_string()
-            } else {
-                history.fuzzy_select()?
-            }
-        }
-    };
-
-    if target.is_empty() {
-        eprintln!("Error: Target cannot be empty");
-        return Ok(());
-    }
-
-    // Save target to history
-    let mut history = storage::TargetHistory::load()?;
-    history.add_target(&target);
-    history.save()?;
-
-    // Setup terminal
+    // Setup terminal early to support MenuApp
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Create app
-    let mut app = App::new(target, log_file).await?;
+    let target = match target_arg {
+        Some(t) => Some(t),
+        None => {
+            let history = storage::TargetHistory::load()?;
+            let theme = if monotone {
+                crate::theme::Theme::monotone()
+            } else {
+                crate::theme::Theme::blacksite()
+            };
+            let menu = MenuApp::new(&history, theme);
+            // Run the menu app
+            menu.run(&mut terminal)?
+        }
+    };
 
-    // Run app
-    let result = run_app(&mut terminal, &mut app).await;
+    if let Some(target_str) = target {
+        if !target_str.is_empty() {
+            // Save target to history
+            let mut history = storage::TargetHistory::load()?;
+            history.add_target(&target_str);
+            history.save()?;
+
+            // Create app
+            let mut app = App::new(target_str, log_file, monotone).await?;
+
+            // Run app
+            run_app(&mut terminal, &mut app).await?;
+            
+             // Save final stats and config
+            let stats = app.ping_monitor.stats();
+            let mut history = storage::TargetHistory::load()?;
+            
+            // Update config with any changes made during session
+            history.config = app.config;
+            
+            history.update_stats(&app.target, stats.avg_response, stats.uptime_pct);
+            history.save()?;
+        }
+    }
 
     // Restore terminal
     disable_raw_mode()?;
@@ -108,17 +142,7 @@ async fn main() -> Result<()> {
     )?;
     terminal.show_cursor()?;
 
-    // Save final stats and config
-    let stats = app.ping_monitor.stats();
-    let mut history = storage::TargetHistory::load()?;
-    
-    // Update config with any changes made during session
-    history.config = app.config;
-    
-    history.update_stats(&app.target, stats.avg_response, stats.uptime_pct);
-    history.save()?;
-
-    result
+    Ok(())
 }
 
 async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mut App) -> Result<()> {
@@ -224,4 +248,3 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
         app.tick().await?;
     }
 }
-

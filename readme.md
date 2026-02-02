@@ -1,123 +1,141 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-2.3.0-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
-![Rust](https://img.shields.io/badge/rust-1.75%2B-orange)
 
-**RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. Designed for professionals and enthusiasts alike, it provides real-time latency visualization, jitter analysis, and integrated tools like speed testing and port scanning—all in a sleek, "Blacksite" themed TUI (Text User Interface).
+**RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. It combines the utility of `ping` with the visual insights of a professional network analyzer, all within a sleek, responsive TUI (Text User Interface).
 
-## ✨ Features
+Designed for network engineers, system administrators, and enthusiasts, RustyPing provides real-time visibility into your network's health with millisecond precision.
 
-*   **Real-time Latency Graph**: High-resolution, 1-dot wide Braille rendering for precise latency tracking (similar to `btop`).
-*   **Comprehensive Stats**: Tracks min, max, average latency, jitter, and packet loss in real-time.
-*   **Integrated Speed Test**: Built-in upload and download bandwidth testing (powered by Cloudflare).
-*   **Port Scanner**: Fast, asynchronous TCP port scanner for common services.
-*   **Ultra-Compact Mode**: Automatically switches to a minimal graph-only view for very small terminal windows (e.g., 20x5), perfect for tiling window managers.
-*   **Target History**: Remembers your recent targets and their health stats.
-*   **Professional UI**: "Blacksite" dark theme optimized for long monitoring sessions.
-*   **Cross-Platform**: Works natively on Windows, Linux, and macOS.
-*   **Proxmox & Alpine Ready**: Optimized for Proxmox LXC containers and Alpine Linux (via `musl` static builds).
+## ✨ New in v2.3.0
+*   **CSV Logging**: Export real-time latency data to a file for long-term analysis.
+*   **Jitter Metrics**: View the Standard Deviation of your connection latency to diagnose instability.
+*   **Monotone Mode**: High-contrast, color-free mode for improved accessibility and compatibility with e-ink displays or vintage terminals.
+*   **Extended Platform Support**: Native support for **Alpine Linux** (static musl builds) and **Proxmox LXC**.
 
-## 🚀 Installation Guide (For Absolute Beginners)
-
-We've made installing RustyPing as easy as possible. Choose the method that fits your comfort level.
-
-### Option 1: The "Instant Run" (Portable) Method
-Use this if you want to run RustyPing *right now* without installing anything permanently. It works exactly like the "Chris Titus Tool" - it runs from memory/temp and leaves no trace.
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
-```
-
-### Option 2: The "Install" Method (Windows Only)
-Use this if you want RustyPing permanently installed on your system.
-Open your PowerShell (press `Win + X` and select **Terminal** or **PowerShell**) and paste this single line. It handles downloading, building, and installing for you automatically.
-
-```powershell
-iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
-```
-
-*Note: If you see red error text about "link.exe" or "C++ Build Tools", don't panic! It just means your computer needs a standard Microsoft tool to build software. The error message will give you the exact command to fix it.*
 
 ---
 
-### Option 3: The "Manual" Method (Step-by-Step)
-If you prefer to see exactly what's happening or are on Linux/macOS, follow these steps.
+## 🚀 Features
 
-#### 1. Install Prerequisites
-RustyPing is built with **Rust**, so you need the Rust toolchain installed.
+*   **Real-time Latency Graph**: High-resolution, 1-dot wide Braille rendering for a precise timeline of network performance.
+*   **Comprehensive Statistics**: Tracks Min, Max, Average, and **Jitter** (Standard Deviation).
+*   **Visual Packet Loss**: Dropped packets are clearly marked as grey lines, preserving the visual timeline.
+*   **CSV Export**: Log every ping result to a CSV file with timestamps for external analysis (`--log`).
+*   **Integrated Tools**:
+    *   **Speed Test**: Built-in upload/download bandwidth testing (powered by Cloudflare).
+    *   **Port Scanner**: Fast, asynchronous TCP port scanner for common services.
+*   **Adaptive UI**: Automatically switches to a compact "mini-mode" for small terminal windows (e.g., tiling window managers).
+*   **Cross-Platform**: Runs natively on Windows, Linux (Debian/Ubuntu/Alpine), and macOS.
 
-*   **Windows**:
-    1.  Open PowerShell as Administrator.
-    2.  Run: `winget install Rustlang.Rustup`
-    3.  **Important**: You also need C++ Build Tools. Run:
-        ```powershell
-        winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
-        ```
-    4.  Close and reopen your terminal.
+---
 
-*   **Linux / macOS**:
-    Open your terminal and run:
-    ```bash
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    ```
+## 📥 Installation
 
-#### 2. Get the Code
-Download the RustyPing source code to your computer.
-```bash
-git clone https://github.com/pdzjtechnagy/RustyPing.git
-cd RustyPing
-```
+### Option 1: Cargo (Recommended for Rust Users)
+If you have Rust installed, this is the easiest way to get the latest version optimized for your hardware.
 
-#### 3. Build & Install
-Turn the code into a runnable program. This might take a minute or two as it optimizes the engine for your specific machine.
 ```bash
 cargo install --path .
 ```
 
-#### 4. Run It!
-You can now run RustyPing from anywhere on your computer.
-```bash
-rping 1.1.1.1
+### Option 2: Pre-built Binaries
+Check the [Releases](https://github.com/pdzjtechnagy/RustyPing/releases) page for pre-compiled binaries for Windows and Linux.
+
+### Option 3: Quick Install Scripts
+
+**Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
+```
+
+**Portable Run (Windows - No Install):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
 ```
 
 ---
 
-## ❓ Troubleshooting & FAQ
-
-**Q: I get "command not found" after installing.**
-A: You likely need to restart your terminal so it recognizes the new `rping` command. If that doesn't work, ensure your Rust `bin` folder is in your PATH.
-
-**Q: The installation failed with "linker not found".**
-A: This is the most common issue on Windows. It means you are missing the Visual Studio Build Tools. Run the `winget` command in the "Manual Method" section above to install them.
-
-**Q: Why do I need to compile it?**
-A: Compiling from source ensures RustyPing runs at maximum speed on your specific hardware. It's like getting a suit tailored exactly to your measurements instead of buying off the rack!
-
-## 🎮 Usage Guide
-
-
 ## 🎮 Usage
 
+### Basic Usage
 Start monitoring a target immediately:
+
 ```bash
+# Ping a domain
 rping google.com
+
+# Ping an IP address
 rping 1.1.1.1
 ```
 
-### Keyboard Controls
+**Interactive Mode**:
+If you run `rping` without any arguments, it will launch the **Interactive Startup Menu**. From here, you can:
+*   Type a new target manually.
+*   Select from your recent history.
+*   Choose from popular default targets (e.g., Google DNS, Cloudflare).
+
+```bash
+rping
+```
+
+### Command Line Options
+
+| Flag | Description | Example |
+| :--- | :--- | :--- |
+| `--log <FILE>` | Log results to a CSV file | `rping 1.1.1.1 --log latency.csv` |
+| `-m`, `--monotone` | Enable high-contrast monochrome mode | `rping 8.8.8.8 -m` |
+| `--list` | List recently visited targets | `rping --list` |
+| `-h`, `--help` | Show help information | `rping --help` |
+
+### Interactive Controls
+While RustyPing is running, you can use the following keyboard shortcuts:
+
 | Key | Action |
 | :--- | :--- |
-| **S** | Start **S**peed Test |
-| **P** | Start **P**ort Scan |
+| **Q** | Quit the application |
+| **ESC** | Open Settings Menu |
+| **S** | Run **S**peed Test |
+| **P** | Run **P**ort Scan |
+| **J** | Toggle **J**itter Panel |
+| **H** | Toggle **H**istory Panel |
 | **R** | **R**eset Statistics |
-| **ESC** | Open **S**ettings / Close Panels |
-| **Q** | **Q**uit |
+| **↑ / ↓** | Adjust Ping Interval (slower/faster) |
+| **← / →** | Adjust Graph History Length |
 
-## 🛠️ Development
+---
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for details on setting up your environment, the Git workflow, and contributing to the project.
+## 📊 CSV Logging Format
+When using the `--log` flag, RustyPing writes data in the following format:
 
-## 📝 License
+```csv
+Timestamp,Target,Latency(ms),Status
+2026-02-01 14:00:01,1.1.1.1,12.5,Success
+2026-02-01 14:00:02,1.1.1.1,12.8,Success
+2026-02-01 14:00:03,1.1.1.1,0.0,Timeout
+```
 
+---
+
+## 🛠️ Configuration
+RustyPing automatically saves your preferences (ping interval, history length) and target history.
+*   **Windows**: `%APPDATA%/rustyping/config.json`
+*   **Linux/macOS**: `~/.config/rustyping/config.json`
+
+---
+
+## ❓ Troubleshooting
+
+**Q: I see "command not found" after installing.**
+A: Ensure your Cargo bin directory is in your PATH.
+*   **Linux/macOS**: `export PATH="$HOME/.cargo/bin:$PATH"`
+*   **Windows**: This is usually added automatically, but a restart may be required.
+
+**Q: The graph looks broken or characters are missing.**
+A: Ensure your terminal font supports Braille characters (e.g., Cascadia Code, Nerd Fonts). If issues persist, try running with `--monotone` to see if it's a color rendering issue.
+
+---
+
+## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

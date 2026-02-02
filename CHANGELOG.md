@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.2.0] - 2026-02-01
+## [v2.3.0] - 2026-02-01
+
+### A Considerable Leap Forward
+Version 2.3.0 represents a major milestone in RustyPing's development, transitioning from a simple CLI tool to a fully interactive, professional-grade network analyzer. This release focuses on data persistence, deeper metrics, and accessibility.
 
 ### Added
 - **CSV Logging**: New `--log <FILE>` argument to export ping results to a CSV file in real-time. Ideal for long-term monitoring and analysis.
+- **TUI Startup Menu**: Completely redesigned the startup experience. Launching without arguments now opens an interactive TUI menu to select recent targets, default providers (Google/Cloudflare), or enter a new target manually.
 - **Jitter Statistics**: Added Jitter (Standard Deviation) metric to the main statistics panel, providing deeper insight into network stability.
 - **Monotone Mode**: New `--monotone` (`-m`) flag for high-contrast, color-free rendering. Ideal for SSH, vintage terminals, and e-ink displays.
 - **Platform Support**: 

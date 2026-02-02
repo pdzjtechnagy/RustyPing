@@ -20,14 +20,15 @@ mod tests {
 
     #[test]
     fn test_theme_colors() {
+        let theme = Theme::default();
         // Test latency thresholds
-        assert_eq!(Theme::latency_color(20.0), Theme::good());
-        assert_eq!(Theme::latency_color(50.0), Theme::warn());
-        assert_eq!(Theme::latency_color(150.0), Theme::crit());
+        assert_eq!(theme.latency_color(20.0), theme.good);
+        assert_eq!(theme.latency_color(50.0), theme.warn);
+        assert_eq!(theme.latency_color(150.0), theme.crit);
 
         // Test graph gradient clamping
         // Should not panic on out of bounds
-        let _ = Theme::graph_gradient(-1.0);
-        let _ = Theme::graph_gradient(2.0);
+        let _ = theme.graph_gradient(-1.0);
+        let _ = theme.graph_gradient(2.0);
     }
 }

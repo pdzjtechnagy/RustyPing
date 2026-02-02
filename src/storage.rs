@@ -2,7 +2,6 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::{self, Write};
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -94,6 +93,7 @@ impl TargetHistory {
         self.entries.sort_by(|a, b| b.last_used.cmp(&a.last_used));
     }
 
+    #[allow(dead_code)]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
@@ -116,74 +116,6 @@ impl TargetHistory {
             );
         }
         println!("└──────────────────────────────────────────┘\n");
-    }
-
-    #[allow(dead_code)]
-    pub fn interactive_select(&self) -> Result<String> {
-        self.print_recent();
-        print!("\nEnter target number or new address: ");
-        io::stdout().flush()?;
-
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-        let input = input.trim();
-
-        // Try to parse as number
-        if let Ok(n) = input.parse::<usize>() {
-            if n > 0 && n <= self.entries.len() {
-                return Ok(self.entries[n - 1].target.clone());
-            }
-        }
-
-        // Otherwise use as target
-        Ok(input.to_string())
-    }
-
-    pub fn fuzzy_select(&self) -> Result<String> {
-        println!("\n┌─ Recent Targets ─────────────────────────┐");
-        for (i, entry) in self.entries.iter().take(5).enumerate() {
-            let alias = entry.alias.as_deref().unwrap_or("");
-            println!(
-                "│ {}. {:<20} {:<15}      │",
-                i + 1,
-                entry.target,
-                alias
-            );
-        }
-        println!("├──────────────────────────────────────────┤");
-        println!("│ Type number, search, or new target      │");
-        println!("└──────────────────────────────────────────┘");
-        
-        print!("\n> ");
-        io::stdout().flush()?;
-
-        let mut input = String::new();
-        io::stdin().read_line(&mut input)?;
-        let input = input.trim();
-
-        // Empty = use last
-        if input.is_empty() && !self.entries.is_empty() {
-            return Ok(self.entries[0].target.clone());
-        }
-
-        // Try to parse as number
-        if let Ok(n) = input.parse::<usize>() {
-            if n > 0 && n <= self.entries.len().min(5) {
-                return Ok(self.entries[n - 1].target.clone());
-            }
-        }
-
-        // Fuzzy search
-        let lower = input.to_lowercase();
-        if let Some(entry) = self.entries.iter().find(|e| {
-            e.target.to_lowercase().contains(&lower)
-                || e.alias.as_ref().is_some_and(|a| a.to_lowercase().contains(&lower))
-        }) {
-            return Ok(entry.target.clone());
-        }
-
-        // Otherwise use as new target
-        Ok(input.to_string())
     }
 
     pub fn update_stats(&mut self, target: &str, avg_latency: f64, success_rate: f64) {

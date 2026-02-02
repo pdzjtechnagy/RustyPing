@@ -1,6 +1,6 @@
 [package]
 name = "rustyping"
-version = "2.2.0"
+version = "2.3.0"
 edition = "2021"
 authors = ["pdzjtechnagy"]
 description = "High-performance, terminal-based network monitoring tool with Braille-resolution graphs"
@@ -33,9 +33,6 @@ chrono = { version = "0.4", features = ["serde"] }
 anyhow = "1.0"
 thiserror = "1.0"
 rand = "0.8"
-
-# Fuzzy Finding
-nucleo = "0.5"
 
 # Statistics
 

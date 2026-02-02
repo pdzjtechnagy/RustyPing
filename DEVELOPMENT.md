@@ -74,8 +74,8 @@ cargo run
 When you make significant changes, you should update the version number.
 
 1.  Open `Cargo.toml`.
-2.  Find `version = "2.0.0"`.
-3.  Change it (e.g., to `"2.0.1"` or `"2.1.0"`).
+2.  Find `version = "2.3.0"`.
+3.  Change it (e.g., to `"2.3.1"` or `"2.4.0"`).
 4.  Commit and push the change.
 
 ## 🐛 Debugging Tips
