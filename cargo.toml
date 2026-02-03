@@ -1,6 +1,6 @@
 [package]
 name = "rustyping"
-version = "2.4.5"
+version = "2.5.0"
 edition = "2021"
 authors = ["pdzjtechnagy"]
 description = "High-performance, terminal-based network monitoring tool with Braille-resolution graphs"
@@ -20,7 +20,7 @@ tokio = { version = "1.35", features = ["full"] }
 # Network Operations
 surge-ping = "0.8"
 fast-socks5 = "0.9"
-reqwest = { version = "0.11", features = ["stream"] }
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls", "stream"] }
 futures-util = "0.3"
 
 # Data & Config
@@ -35,6 +35,30 @@ thiserror = "1.0"
 rand = "0.8"
 
 # Statistics
+
+[package.metadata.deb]
+maintainer = "pdzjtechnagy <pdzjtechnagy@gmail.com>"
+copyright = "2024, pdzjtechnagy"
+license-file = ["LICENSE"]
+extended-description = """
+RustyPing is a high-performance, terminal-based network monitoring tool.
+It features Braille-resolution graphs, real-time statistics, and a 
+user-friendly TUI for monitoring network latency and stability.
+"""
+section = "net"
+priority = "optional"
+assets = [
+    ["target/release/rping", "usr/bin/rping", "755"],
+]
+
+[package.metadata.rpm]
+package = "rustyping"
+
+[package.metadata.rpm.cargo]
+buildflags = ["--release"]
+
+[package.metadata.rpm.targets]
+rustyping = { path = "/usr/bin/rping" }
 
 [profile.release]
 strip = true

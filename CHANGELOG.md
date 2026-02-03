@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.5.0] - 2026-02-03
+
+### Added
+- **CI/CD Pipeline**: Automated multi-platform builds for Linux and Windows using GitHub Actions.
+- **New Packaging**: Native `.deb` (Debian/Ubuntu) and `.rpm` (Fedora/RHEL) support.
+- **Multi-Architecture Support**:
+  - Linux: `x86_64`, `aarch64`, `musl-static`, `ppc64le`, `riscv64`.
+  - Windows: `x86_64`, `i686`, `aarch64`.
+- **Static Linking**: Switched to `rustls-tls` for Linux binaries to ensure portability across distros without system OpenSSL.
+
+### Changed
+- **Asset Discovery**: Enhanced `run_portable.sh` and `linux_install.sh` with flexible regex-based matching for release assets.
+- **Documentation**: Comprehensive update of `README.md`, `INSTALL.md`, and new `docs/CI_CD.md`.
+- **Startup Menu**: Updated version branding to `v2.5.0`.
+
+### Fixed
+- **Proxmox Compatibility**: Resolved "Binary not found" error in portable launcher by implementing robust architecture detection and fallback logic.
+- **CI Workflow**: Optimized build matrix and artifact naming for reliable GitHub Releases.
+
 ## [v2.4.5] - 2026-02-03
 
 ### Fixed

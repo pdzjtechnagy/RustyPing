@@ -43,7 +43,7 @@ print_banner() {
     clear
     echo -e "${CYAN}"
     echo "  ╔════════════════════════════════════════════════════════════╗"
-    echo "  ║                RustyPing Linux Utility v2.4.5              ║"
+    echo "  ║                RustyPing Linux Utility v2.5.0              ║"
     echo "  ╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
@@ -74,15 +74,50 @@ install_rustyping() {
     # Determine Architecture
     ARCH=$(uname -m)
     case "$ARCH" in
-        x86_64) BINARY_NAME="rustyping_linux_amd64" ;;
-        aarch64) BINARY_NAME="rustyping_linux_arm64" ;;
-        *) echo -e "${RED}[-] Unsupported architecture: $ARCH${NC}"; exit 1 ;;
+        x86_64) 
+            ARCH_PATTERN="amd64|x86_64|x64"
+            PRIMARY_NAME="rustyping_linux_amd64"
+            ;;
+        aarch64|arm64) 
+            ARCH_PATTERN="arm64|aarch64"
+            PRIMARY_NAME="rustyping_linux_arm64"
+            ;;
+        *) 
+            echo -e "${RED}[-] Unsupported architecture: $ARCH${NC}"
+            exit 1 
+            ;;
     esac
 
-    DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$BINARY_NAME"
+    # Try to find the best matching asset from release data
+    RELEASE_DATA=$(curl -s https://api.github.com/repos/$REPO/releases/latest)
     
+    # 1. Try primary name
+    DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep "$PRIMARY_NAME" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    # 2. Try architecture pattern + linux
+    if [ -z "$DOWNLOAD_URL" ]; then
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -i "linux" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+    
+    # 3. Try just architecture pattern (excluding windows files)
+    if [ -z "$DOWNLOAD_URL" ]; then
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -vE "\.exe|\.msi|\.zip" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+    
+    # 4. Last resort
+    if [ -z "$DOWNLOAD_URL" ]; then
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -E "rping|rustyping" | grep -vE "\.exe|\.msi|\.zip" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+
+    if [ -z "$DOWNLOAD_URL" ]; then
+        echo -e "${RED}[-] Error: Could not find a suitable binary for $ARCH in release $TAG.${NC}"
+        echo -e "${YELLOW}[!] Available assets in $TAG:${NC}"
+        echo "$RELEASE_DATA" | grep '"name":' | sed -E 's/.*"name": "([^"]+)".*/    - \1/'
+        exit 1
+    fi
+
     mkdir -p "$TEMP_DIR"
-    echo -e "${CYAN}[*] Downloading $BINARY_NAME...${NC}"
+    echo -e "${CYAN}[*] Downloading from: $(basename "$DOWNLOAD_URL")...${NC}"
     
     if curl -L -o "$TEMP_DIR/rping" "$DOWNLOAD_URL"; then
         chmod +x "$TEMP_DIR/rping"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# RustyPing Linux Portable Launcher v2.4.5
+# RustyPing Linux Portable Launcher v2.5.0
 # This script downloads the latest release binary to a temp folder and runs it.
 #
 # Usage: curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.sh | bash
@@ -44,26 +44,62 @@ fi
 
 # Determine Architecture
 ARCH=$(uname -m)
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+
 case "$ARCH" in
-    x86_64) BINARY_NAME="rustyping_linux_amd64" ;;
-    aarch64) BINARY_NAME="rustyping_linux_arm64" ;;
-    *) echo -e "${RED}[-] Unsupported architecture: $ARCH${NC}"; exit 1 ;;
+    x86_64) 
+        ARCH_PATTERN="amd64|x86_64|x64"
+        PRIMARY_NAME="rustyping_linux_amd64"
+        ;;
+    aarch64|arm64) 
+        ARCH_PATTERN="arm64|aarch64"
+        PRIMARY_NAME="rustyping_linux_arm64"
+        ;;
+    *) 
+        echo -e "${RED}[-] Unsupported architecture: $ARCH${NC}"
+        exit 1 
+        ;;
 esac
 
-DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep "$BINARY_NAME" | sed -E 's/.*"([^"]+)".*/\1/')
+# Try to find the best matching asset
+echo -e "${GRAY}[*] Searching for $ARCH binary...${NC}"
+
+# 1. Try primary name
+DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep "$PRIMARY_NAME" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+
+# 2. Try architecture pattern + linux
+if [ -z "$DOWNLOAD_URL" ]; then
+    DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -i "linux" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+fi
+
+# 3. Try just architecture pattern (if not windows)
+if [ -z "$DOWNLOAD_URL" ]; then
+    DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -vE "\.exe|\.msi|\.zip" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+fi
+
+# 4. Last resort: look for any asset named 'rping' or 'rustyping' that isn't a windows file
+if [ -z "$DOWNLOAD_URL" ]; then
+    DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -E "rping|rustyping" | grep -vE "\.exe|\.msi|\.zip" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+fi
 
 if [ -z "$DOWNLOAD_URL" ]; then
-    echo -e "${RED}[-] Error: Could not find binary for $ARCH in release $TAG.${NC}"
+    echo -e "${RED}[-] Error: Could not find a suitable binary for $ARCH in release $TAG.${NC}"
+    echo -e "${YELLOW}[!] Available assets in $TAG:${NC}"
+    echo "$RELEASE_DATA" | grep '"name":' | sed -E 's/.*"name": "([^"]+)".*/    - \1/'
+    echo -e "${CYAN}[*] Tip: Ensure the Linux binary is uploaded to the GitHub release.${NC}"
     exit 1
 fi
+
+# Extract binary name from URL for cache check
+ACTUAL_BINARY_NAME=$(basename "$DOWNLOAD_URL")
 
 # Simple cache check (compare size if file exists)
 NEEDS_DOWNLOAD=true
 if [ -f "$EXE_PATH" ]; then
     LOCAL_SIZE=$(stat -c%s "$EXE_PATH")
-    REMOTE_SIZE=$(echo "$RELEASE_DATA" | grep -A 10 "$BINARY_NAME" | grep '"size":' | head -n 1 | sed -E 's/.*: ([0-9]+).*/\1/')
+    REMOTE_SIZE=$(echo "$RELEASE_DATA" | grep -A 10 "$ACTUAL_BINARY_NAME" | grep '"size":' | head -n 1 | sed -E 's/.*: ([0-9]+).*/\1/')
     
-    if [ "$LOCAL_SIZE" -eq "$REMOTE_SIZE" ]; then
+    if [ "$LOCAL_SIZE" -eq "$REMOTE_SIZE" ] && [ -n "$REMOTE_SIZE" ]; then
         echo -e "${GREEN}[+] Using cached version: $TAG${NC}"
         NEEDS_DOWNLOAD=false
     fi

@@ -1,3 +1,24 @@
+# Release Notes - RustyPing v2.5.0
+
+**Release Date:** 2026-02-03
+
+## 🚀 The "Professional Distribution" Update
+
+RustyPing v2.5.0 marks a significant milestone in the project's evolution, introducing a robust CI/CD pipeline and broad architectural support. This release ensures that RustyPing can run on almost any modern system, from high-end workstations to specialized Linux environments like Proxmox and RISC-V SBCs.
+
+### ✨ Key Highlights
+
+*   **Automated Multi-Platform Builds**: Integrated a full GitHub Actions CI/CD pipeline.
+*   **Expanded Linux Support**: Native `.deb` and `.rpm` packages for all major distributions.
+*   **Static Portability**: New `musl`-based Linux builds for zero-dependency execution.
+*   **Broad Architecture Support**:
+    *   **Linux**: x86_64, ARM64, PowerPC 64LE, and RISC-V 64.
+    *   **Windows**: x86_64, i686 (32-bit), and AArch64 (ARM64).
+*   **Robust Asset Discovery**: Updated portable launchers with regex-based binary matching for reliable "one-liner" execution.
+*   **Deep Debug Audit**: Comprehensive codebase review for v2.5.0 stability.
+
+---
+
 # Release Notes - RustyPing v2.4.5
 
 **Release Date:** 2026-02-03

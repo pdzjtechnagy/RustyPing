@@ -1,0 +1,171 @@
+name: Multi-Platform Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    name: Build Linux (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - powerpc64le-unknown-linux-gnu
+          - riscv64gc-unknown-linux-gnu
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact_name: rustyping-linux-amd64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact_name: rustyping-linux-arm64
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            artifact_name: rustyping-linux-musl
+          - target: powerpc64le-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact_name: rustyping-linux-ppc64le
+          - target: riscv64gc-unknown-linux-gnu
+            os: ubuntu-latest
+            artifact_name: rustyping-linux-riscv64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross.git
+
+      - name: Build with cross
+        run: cross build --release --target ${{ matrix.target }}
+        env:
+          PKG_CONFIG_ALLOW_CROSS: 1
+
+      - name: Prepare Artifact
+        run: |
+          mkdir -p staging
+          cp target/${{ matrix.target }}/release/rping staging/
+          cd staging
+          tar -czf ../${{ matrix.artifact_name }}.tar.gz rping
+        shell: bash
+
+      - name: Build DEB
+        if: contains(matrix.target, 'linux-gnu')
+        run: |
+          cargo install cargo-deb
+          # Use --no-build since we already built with cross
+          # But we need the binary in the expected location for cargo-deb
+          mkdir -p target/${{ matrix.target }}/release
+          cp target/${{ matrix.target }}/release/rping target/${{ matrix.target }}/release/rping
+          cargo deb --target ${{ matrix.target }} --no-build
+          cp target/${{ matrix.target }}/debian/*.deb .
+        shell: bash
+
+      - name: Build RPM
+        if: contains(matrix.target, 'linux-gnu')
+        run: |
+          cargo install cargo-generate-rpm
+          # We need the binary in the expected place for rpm generation
+          mkdir -p target/release
+          cp target/${{ matrix.target }}/release/rping target/release/
+          cargo generate-rpm --target ${{ matrix.target }}
+          cp target/generate-rpm/*.rpm .
+        shell: bash
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            *.tar.gz
+            *.deb
+            *.rpm
+
+  build-windows:
+    name: Build Windows (${{ matrix.target }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+        include:
+          - target: x86_64-pc-windows-msvc
+            artifact_name: rustyping-windows-amd64
+          - target: i686-pc-windows-msvc
+            artifact_name: rustyping-windows-x86
+          - target: aarch64-pc-windows-msvc
+            artifact_name: rustyping-windows-arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: target/${{ matrix.target }}/release/rping.exe
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release_assets
+          find artifacts -type f -name "*.tar.gz" -exec cp {} release_assets/ \;
+          find artifacts -type f -name "*.deb" -exec cp {} release_assets/ \;
+          find artifacts -type f -name "*.rpm" -exec cp {} release_assets/ \;
+          # Handle Windows naming specifically
+          cp artifacts/rustyping-windows-amd64/rping.exe release_assets/rustyping-windows-amd64.exe
+          cp artifacts/rustyping-windows-x86/rping.exe release_assets/rustyping-windows-x86.exe
+          cp artifacts/rustyping-windows-arm64/rping.exe release_assets/rustyping-windows-arm64.exe
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_assets/*
+          generate_release_notes: true

@@ -1,7 +1,7 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.5-green.svg)
+![Version](https://img.shields.io/badge/version-2.5.0-green.svg)
 
 ---
 
@@ -43,8 +43,12 @@ If you have Rust installed, this is the easiest way to get the latest version op
 cargo install --path .
 ```
 
-### Option 2: Pre-built Binaries
-Check the [Releases](https://github.com/pdzjtechnagy/RustyPing/releases) page for pre-compiled binaries for Windows and Linux.
+### Option 2: Pre-built Binaries (Automated)
+RustyPing is automatically compiled for multiple architectures and distributions via GitHub Actions. You can find the following formats on the [Releases](https://github.com/pdzjtechnagy/RustyPing/releases) page:
+
+*   **Linux**: `.deb` (Ubuntu/Debian), `.rpm` (Fedora), and `.tar.gz` (Generic).
+*   **Windows**: `.exe` (Portable) for `x86_64`, `x86`, and `ARM64`.
+*   **Architectures**: `x86_64`, `x86`, `ARM64`, `PowerPC`, and `RISC-V`.
 
 ### Option 3: Quick Install Scripts
 
