@@ -292,7 +292,7 @@ pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<PingC
                 }
                 cmd = cmd_rx.recv() => {
                     match cmd {
-                        Some(PingCommand::Stop) | None => break,
+                        None => break,
                         Some(PingCommand::ToggleWebCheck(enabled)) => {
                             web_check_enabled = enabled;
                         }

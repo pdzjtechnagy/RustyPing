@@ -21,7 +21,6 @@ pub struct App {
     pub target: String,
     pub ping_monitor: PingMonitor,
     pub start_time: Instant,
-    pub last_ping: Instant,
     
     // Background Task Channels
     pub ping_tx: mpsc::Sender<PingCommand>,
