@@ -1,7 +1,7 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.1-green.svg)
+![Version](https://img.shields.io/badge/version-2.4.2-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
 **RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. It combines the utility of `ping` with the visual insights of a professional network analyzer, all within a sleek, responsive TUI (Text User Interface).

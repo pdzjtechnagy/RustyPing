@@ -1,4 +1,4 @@
-# Release Notes - RustyPing v2.4.1
+# Release Notes - RustyPing v2.4.2
 
 **Release Date:** 2026-02-03
 
@@ -11,6 +11,10 @@ This hotfix addresses critical stability issues found during a deep code audit a
 *   **Graceful Shutdown**: Background tasks now handle stop signals correctly, preventing orphaned processes.
 *   **Performance Optimization**: Cleaned up 9 Clippy warnings and optimized internal string formatting for better performance.
 *   **UI Polish**: Refined the startup menu's navigation logic for a smoother user experience.
+
+---
+
+# Release Notes - RustyPing v2.4.1 (Internal)
 
 ---
 

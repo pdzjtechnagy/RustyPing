@@ -1,9 +1,9 @@
 class Rustyping < Formula
   desc "Advanced TUI Ping Tool"
   homepage "https://github.com/pdzjtechnagy/RustyPing"
-  url "https://github.com/pdzjtechnagy/RustyPing/releases/download/v2.4.1/rustyping-macos-v2.4.1.tar.gz"
+  url "https://github.com/pdzjtechnagy/RustyPing/releases/download/v2.4.2/rustyping-macos-v2.4.2.tar.gz"
   sha256 "REPLACE_WITH_ACTUAL_SHA256"
-  version "2.4.1"
+  version "2.4.2"
   license "MIT"
 
   def install

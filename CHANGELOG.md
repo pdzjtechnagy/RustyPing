@@ -2,14 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.4.1] - 2026-02-03
+## [v2.4.2] - 2026-02-03
 
 ### Fixed
-- **Deep Debug Fixes**:
-  - **Test Suite**: Resolved a critical compilation error in `network_intelligence_flow` tests where `PingCommand::Stop` was missing.
-  - **Graceful Shutdown**: Properly implemented `PingCommand::Stop` to allow background tasks to exit cleanly.
-  - **Code Quality**: Fixed 9 Clippy warnings related to `uninlined_format_args` and `collapsible_else_if` across the codebase.
-- **UI Logic**: Optimized the startup menu's navigation logic.
+- Hotfix release with deep debug improvements and linting fixes.
+- Fixed `test_network_intelligence_flow` compilation by adding `PingCommand::Stop`.
+- Refactored UI code for better performance and modern Rust idioms.
+
+## [v2.4.1] - 2026-02-03 (Internal/Skipped)
+- Initial hotfix attempt.
 
 ## [v2.4.0] - 2026-02-03
 

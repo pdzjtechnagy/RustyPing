@@ -22,7 +22,7 @@ use ratatui::{
 use std::io::{self};
 
 fn print_help() {
-    println!("RustyPing v2.4.1 - High-performance network monitoring tool");
+    println!("RustyPing v2.4.2 - High-performance network monitoring tool");
     println!();
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();

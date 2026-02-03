@@ -1,7 +1,7 @@
 # RustyPing Build Script
 # Builds the release binary with optimizations
 
-Write-Host "Building RustyPing 2.4.1..." -ForegroundColor Cyan
+Write-Host "Building RustyPing 2.4.2..." -ForegroundColor Cyan
 Write-Host ""
 
 # Build release version

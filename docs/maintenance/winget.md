@@ -12,7 +12,7 @@ This guide describes how to prepare RustyPing for Windows Package Manager (Winge
 1. **Prepare Release ZIP**:
    Zip the `rustyping.exe`.
    ```powershell
-   Compress-Archive -Path rustyping.exe -DestinationPath rustyping-windows-v2.4.1.zip
+   Compress-Archive -Path rustyping.exe -DestinationPath rustyping-windows-v2.4.2.zip
    ```
 
 2. **Calculate SHA256**:

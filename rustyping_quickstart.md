@@ -1,4 +1,4 @@
-# RustyPing v2.4.1 - Quick Start 🚀
+# RustyPing v2.4.2 - Quick Start 🚀
 
 ## TL;DR - Get It Running
 
