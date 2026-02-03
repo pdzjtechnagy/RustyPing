@@ -2,7 +2,7 @@ mod ping;
 mod speedtest;
 mod portscan;
 
-pub use ping::{PingMonitor, PingResult, start_ping_task};
+pub use ping::{PingMonitor, PingResult, PingCommand, start_ping_task, WebCheckStatus};
 pub use speedtest::{SpeedTest, SpeedTestState};
 pub use portscan::{PortScanner, PortResult, PortStatus};
 
@@ -19,6 +19,10 @@ pub struct NetworkStats {
     pub stability: f64,
     pub quality: String,
     pub total_pings: u64,
+    // New Metrics
+    pub dns_duration: Option<f64>,
+    pub tcp_port_80: WebCheckStatus,
+    pub tcp_port_443: WebCheckStatus,
 }
 
 impl Default for NetworkStats {
@@ -35,6 +39,9 @@ impl Default for NetworkStats {
             stability: 100.0,
             quality: "UNKNOWN".to_string(),
             total_pings: 0,
+            dns_duration: None,
+            tcp_port_80: WebCheckStatus::Untested,
+            tcp_port_443: WebCheckStatus::Untested,
         }
     }
 }

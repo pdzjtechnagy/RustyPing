@@ -171,6 +171,8 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                         KeyCode::Esc => {
                             if app.show_settings {
                                 app.toggle_settings();
+                            } else if app.show_diagnostics {
+                                app.toggle_diagnostics();
                             } else if app.speedtest.is_none() && app.portscan.is_none() {
                                 // Only toggle settings if no other modal is open
                                 app.show_settings = true;
@@ -204,6 +206,12 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                                 app.reset_stats();
                             }
                         }
+                        // Web Check
+                        KeyCode::Char('w') | KeyCode::Char('W') => {
+                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                                app.toggle_web_check().await;
+                            }
+                        }
                         
                         // Dynamic Controls (Arrow Keys)
                         KeyCode::Right => {
@@ -232,6 +240,11 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                         }
                         KeyCode::Enter if app.show_settings => {
                             app.settings_toggle_selected();
+                        }
+                        KeyCode::Enter => {
+                             if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                                 app.toggle_diagnostics();
+                             }
                         }
                         KeyCode::Char(c) if app.show_settings && c.is_ascii_digit() => {
                             if let Some(n) = c.to_digit(10) {

@@ -1,5 +1,5 @@
 use crate::app::App;
-use crate::network::{PortResult, PortStatus, SpeedTestState};
+use crate::network::{PortResult, PortStatus, SpeedTestState, WebCheckStatus};
 use crate::theme::Theme;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -128,9 +128,12 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         draw_footer(f, app, *chunk);
     }
 
-    // Settings overlay (rendered last so it's on top)
+    // Draw overlays last (so they appear on top)
     if app.show_settings {
         draw_settings_overlay(f, app);
+    }
+    if app.show_diagnostics {
+        draw_diagnostics_overlay(f, app);
     }
 }
 
@@ -351,6 +354,51 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
             Span::styled(format!("{:>6.1}%", stats.packet_loss_pct), Style::default().fg(app.theme.fg)),
         ]),
         Line::from(""),
+        Line::from(vec![
+            Span::styled("DNS Time:  ", Style::default().fg(app.theme.low)),
+            Span::styled(
+                if let Some(dns) = stats.dns_duration {
+                    format!("{:>8.1} ms", dns)
+                } else {
+                    "     N/A".to_string()
+                },
+                Style::default().fg(app.theme.fg)
+            ),
+        ]),
+        Line::from(vec![
+             Span::styled("Web Check: ", Style::default().fg(app.theme.low)),
+             if app.enable_web_check {
+                 Span::styled("ON", Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD))
+             } else {
+                 Span::styled("OFF", Style::default().fg(app.theme.low))
+             },
+        ]),
+        if app.enable_web_check {
+             Line::from(vec![
+                 Span::styled("  HTTP(80): ", Style::default().fg(app.theme.low)),
+                 match stats.tcp_port_80 {
+                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
+                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
+                 }
+             ])
+        } else {
+            Line::from("")
+        },
+        if app.enable_web_check {
+             Line::from(vec![
+                 Span::styled("  SSL(443): ", Style::default().fg(app.theme.low)),
+                 match stats.tcp_port_443 {
+                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
+                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
+                 }
+             ])
+        } else {
+            Line::from("")
+        },
+        Line::from(""),
+        Line::from(highlighted_key(&app.theme, "W", "Toggle Web Check")),
         Line::from(highlighted_key(&app.theme, "R", "Reset Stats")),
     ];
 
@@ -808,6 +856,85 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
 
         f.render_widget(text, area);
     }
+}
+
+fn format_web_check(status: &WebCheckStatus) -> String {
+    match status {
+        WebCheckStatus::Untested => "Not Run".to_string(),
+        WebCheckStatus::Success(ms) => format!("OK ({:.2} ms)", ms),
+        WebCheckStatus::Timeout => "Timeout".to_string(),
+        WebCheckStatus::ConnectionRefused => "Refused".to_string(),
+        WebCheckStatus::Error(e) => format!("Error: {}", e),
+    }
+}
+
+fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
+    let area = centered_rect(60, 50, f.area());
+    let stats = app.ping_monitor.stats();
+    
+    let dns_status = if let Some(ms) = stats.dns_duration {
+        format!("{:.2} ms", ms)
+    } else {
+        "N/A".to_string()
+    };
+
+    let http_status = format_web_check(&stats.tcp_port_80);
+    let https_status = format_web_check(&stats.tcp_port_443);
+    
+    let http_color = match stats.tcp_port_80 {
+        WebCheckStatus::Success(_) => app.theme.good,
+        WebCheckStatus::Untested => app.theme.low,
+        _ => app.theme.missed,
+    };
+    
+    let https_color = match stats.tcp_port_443 {
+        WebCheckStatus::Success(_) => app.theme.good,
+        WebCheckStatus::Untested => app.theme.low,
+        _ => app.theme.missed,
+    };
+
+    let text = vec![
+        Line::from(""),
+        Line::from(Span::styled("Network Intelligence", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("DNS Resolution: "),
+            Span::styled(dns_status, Style::default().fg(app.theme.hi_fg)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("Connectivity Checks", Style::default().fg(app.theme.title))),
+        Line::from(vec![
+            Span::raw("HTTP (Port 80): "),
+            Span::styled(http_status, Style::default().fg(http_color)),
+        ]),
+        Line::from(vec![
+            Span::raw("HTTPS (Port 443): "),
+            Span::styled(https_status, Style::default().fg(https_color)),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("ICMP Statistics", Style::default().fg(app.theme.title))),
+        Line::from(vec![
+            Span::raw("Total Pings: "),
+            Span::styled(format!("{}", stats.total_pings), Style::default().fg(app.theme.fg)),
+        ]),
+        Line::from(vec![
+            Span::raw("Packet Loss: "),
+            Span::styled(format!("{:.1}%", stats.packet_loss_pct), Style::default().fg(if stats.packet_loss_pct > 0.0 { app.theme.missed } else { app.theme.good })),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled("Press ESC to close", Style::default().fg(app.theme.low))),
+    ];
+
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .title(" Diagnostics ")
+        .style(Style::default().bg(app.theme.bg));
+    
+    let p = Paragraph::new(text)
+        .block(block)
+        .alignment(ratatui::layout::Alignment::Center);
+
+    f.render_widget(p, area);
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
