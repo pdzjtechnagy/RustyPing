@@ -21,6 +21,8 @@ pub enum WebCheckStatus {
 #[derive(Debug)]
 pub enum PingCommand {
     ToggleWebCheck(bool),
+    #[allow(dead_code)]
+    Stop,
 }
 
 #[derive(Debug)]
@@ -292,7 +294,7 @@ pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<PingC
                 }
                 cmd = cmd_rx.recv() => {
                     match cmd {
-                        None => break,
+                        None | Some(PingCommand::Stop) => break,
                         Some(PingCommand::ToggleWebCheck(enabled)) => {
                             web_check_enabled = enabled;
                         }

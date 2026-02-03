@@ -176,10 +176,8 @@ impl MenuApp {
                     } else {
                         self.list_state.select(Some(i - 1));
                     }
-                } else {
-                    if i + 1 < list_len {
-                        self.list_state.select(Some(i + 1));
-                    }
+                } else if i + 1 < list_len {
+                    self.list_state.select(Some(i + 1));
                 }
             }
         }
@@ -333,7 +331,7 @@ impl MenuApp {
         let render_list = |title: &str, items: &[String], section: SelectionSection, f: &mut Frame, area: Rect, state: &mut ListState, theme: &Theme| {
             let list_items: Vec<ListItem> = items
                 .iter()
-                .map(|i| ListItem::new(format!("  {}", i)))
+                .map(|i| ListItem::new(format!("  {i}")))
                 .collect();
 
             let is_selected = self.selected_section == section;
@@ -346,7 +344,7 @@ impl MenuApp {
             let list = List::new(list_items)
                 .block(Block::default()
                     .borders(Borders::ALL)
-                    .title(format!(" {} ", title))
+                    .title(format!(" {title} "))
                     .border_style(border_style))
                 .highlight_style(Style::default().bg(theme.selected_bg).fg(theme.selected_fg).add_modifier(Modifier::BOLD))
                 .highlight_symbol(">> ");

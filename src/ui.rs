@@ -358,7 +358,7 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
             Span::styled("DNS Time:  ", Style::default().fg(app.theme.low)),
             Span::styled(
                 if let Some(dns) = stats.dns_duration {
-                    format!("{:>8.1} ms", dns)
+                    format!("{dns:>8.1} ms")
                 } else {
                     "     N/A".to_string()
                 },
@@ -377,7 +377,7 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
              Line::from(vec![
                  Span::styled("  HTTP(80): ", Style::default().fg(app.theme.low)),
                  match stats.tcp_port_80 {
-                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Success(t) => Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg)),
                      WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
                      _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
                  }
@@ -389,7 +389,7 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
              Line::from(vec![
                  Span::styled("  SSL(443): ", Style::default().fg(app.theme.low)),
                  match stats.tcp_port_443 {
-                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Success(t) => Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg)),
                      WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
                      _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
                  }
@@ -861,10 +861,10 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
 fn format_web_check(status: &WebCheckStatus) -> String {
     match status {
         WebCheckStatus::Untested => "Not Run".to_string(),
-        WebCheckStatus::Success(ms) => format!("OK ({:.2} ms)", ms),
+        WebCheckStatus::Success(ms) => format!("OK ({ms:.2} ms)"),
         WebCheckStatus::Timeout => "Timeout".to_string(),
         WebCheckStatus::ConnectionRefused => "Refused".to_string(),
-        WebCheckStatus::Error(e) => format!("Error: {}", e),
+        WebCheckStatus::Error(e) => format!("Error: {e}"),
     }
 }
 
@@ -873,7 +873,7 @@ fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
     let stats = app.ping_monitor.stats();
     
     let dns_status = if let Some(ms) = stats.dns_duration {
-        format!("{:.2} ms", ms)
+        format!("{ms:.2} ms")
     } else {
         "N/A".to_string()
     };
