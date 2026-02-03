@@ -48,14 +48,14 @@ Check the [Releases](https://github.com/pdzjtechnagy/RustyPing/releases) page fo
 
 ### Option 3: Quick Install Scripts
 
-**Windows (PowerShell):**
-```powershell
-iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
-```
-
-**Portable Run (Windows - No Install):**
+**Windows One-Liner (Portable / No Install):**
 ```powershell
 iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
+```
+
+**Windows Full Install (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
 ```
 
 ---

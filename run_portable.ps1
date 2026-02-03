@@ -1,16 +1,21 @@
-# RustyPing Portable Launcher
+# RustyPing Portable Launcher v2.4.2
 # This script downloads the latest release binary to the Temp folder and runs it.
 
 $repo = "pdzjtechnagy/RustyPing"
 $tempDir = "$env:TEMP\RustyPing"
 $exePath = "$tempDir\rping.exe"
 
-# Create temp directory if it doesn't exist
+# 1. Setup Environment
 if (!(Test-Path -Path $tempDir)) {
     New-Item -ItemType Directory -Path $tempDir | Out-Null
 }
 
-Write-Host "[*] Checking for latest RustyPing version..." -ForegroundColor Cyan
+Write-Host "`n  ╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "  ║                RustyPing Portable Launcher                 ║" -ForegroundColor Cyan
+Write-Host "  ╚════════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
+
+# 2. Check for Updates
+Write-Host "[*] Connecting to GitHub..." -ForegroundColor Gray
 
 try {
     # Get the latest release data from GitHub API
@@ -21,34 +26,44 @@ try {
     $asset = $latestRelease.assets | Where-Object { $_.name -like "*.exe" } | Select-Object -First 1
 
     if (!$asset) {
-        Write-Error "No Windows executable found in the latest release ($tag)."
+        Write-Host "[!] Error: No Windows executable found in the latest release ($tag)." -ForegroundColor Red
         exit 1
     }
 
     # Download if it doesn't exist or is a different size (simple cache check)
     if ((Test-Path $exePath) -and ((Get-Item $exePath).Length -eq $asset.size)) {
-        Write-Host "[+] Using cached version ($tag)" -ForegroundColor Green
+        Write-Host "[+] Using cached version: $tag" -ForegroundColor Green
     }
     else {
-        Write-Host "[*] Downloading RustyPing ($tag)..." -ForegroundColor Yellow
-        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $exePath
+        # Ensure no running instance is locking the file
+        Get-Process rping -ErrorAction SilentlyContinue | Stop-Process -Force
+        
+        Write-Host "[*] Downloading RustyPing $tag..." -ForegroundColor Yellow
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $exePath -UseBasicParsing
         Write-Host "[+] Download complete!" -ForegroundColor Green
     }
 
-    # Run RustyPing
-    Write-Host "[*] Launching..." -ForegroundColor Cyan
-    Start-Process -FilePath $exePath -Wait -NoNewWindow
+    # 3. Launch
+    Write-Host "[*] Launching RustyPing..." -ForegroundColor Cyan
+    Write-Host "------------------------------------------------------------" -ForegroundColor Gray
+    
+    # Run with pass-through arguments if any were provided to the script
+    if ($args.Count -gt 0) {
+        & $exePath $args
+    } else {
+        & $exePath
+    }
 
-    # Cleanup (Optional - remove the '#' below if you want it to truly "disappear")
-    # Remove-Item -Path $exePath -Force
+    Write-Host "`n------------------------------------------------------------" -ForegroundColor Gray
+    Write-Host "[+] Session ended." -ForegroundColor Cyan
 }
 catch {
-    if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
-        Write-Host "[-] No releases found on GitHub yet." -ForegroundColor Red
-        Write-Host "    Please create a release at https://github.com/$repo/releases/new" -ForegroundColor Yellow
+    if ($_.Exception.Response.StatusCode -eq 404) {
+        Write-Host "[-] Error: No releases found on GitHub." -ForegroundColor Red
+        Write-Host "    Create a release at https://github.com/$repo/releases" -ForegroundColor Yellow
     }
     else {
-        Write-Error "Failed to launch RustyPing: $_"
-        Write-Host "Make sure you are connected to the internet and GitHub is accessible." -ForegroundColor Red
+        Write-Host "[-] Failed to launch: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "    Check your internet connection." -ForegroundColor Yellow
     }
 }
