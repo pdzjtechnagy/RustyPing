@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.4.1] - 2026-02-03
+
+### Fixed
+- **Deep Debug Fixes**:
+  - **Test Suite**: Resolved a critical compilation error in `network_intelligence_flow` tests where `PingCommand::Stop` was missing.
+  - **Graceful Shutdown**: Properly implemented `PingCommand::Stop` to allow background tasks to exit cleanly.
+  - **Code Quality**: Fixed 9 Clippy warnings related to `uninlined_format_args` and `collapsible_else_if` across the codebase.
+- **UI Logic**: Optimized the startup menu's navigation logic.
+
 ## [v2.4.0] - 2026-02-03
 
 ### Network Intelligence & Deep Diagnostics
@@ -18,7 +27,7 @@ Version 2.4.0 transforms RustyPing from a ping tool into a comprehensive network
   - TCP checks run in independent, non-blocking `tokio` tasks to ensure the main ICMP ping loop remains perfectly timed, even during TCP timeouts.
 
 ### Fixed
-- **Codebase Cleanup**: Removed unused fields and variants (`last_ping`, `PingCommand::Stop`) for a cleaner compilation.
+- **Codebase Cleanup**: Removed unused fields and optimized internal message passing.
 
 ## [v2.3.0] - 2026-02-01
 

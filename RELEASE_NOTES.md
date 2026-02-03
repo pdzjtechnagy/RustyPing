@@ -1,3 +1,46 @@
+# Release Notes - RustyPing v2.4.1
+
+**Release Date:** 2026-02-03
+
+## 🔧 Critical Hotfix & Code Audit
+
+This hotfix addresses critical stability issues found during a deep code audit and ensures the test suite is fully operational.
+
+### ✨ Key Changes
+*   **Test Suite Stability**: Resolved a compilation error in the network intelligence test flow.
+*   **Graceful Shutdown**: Background tasks now handle stop signals correctly, preventing orphaned processes.
+*   **Performance Optimization**: Cleaned up 9 Clippy warnings and optimized internal string formatting for better performance.
+*   **UI Polish**: Refined the startup menu's navigation logic for a smoother user experience.
+
+---
+
+# Release Notes - RustyPing v2.4.0
+
+**Release Date:** 2026-02-03
+
+## 🧠 Network Intelligence & Deep Diagnostics
+
+RustyPing v2.4.0 transforms the tool from a high-performance pinger into a comprehensive network intelligence platform.
+
+### ✨ Key Highlights
+
+### 🔍 Deep Diagnostics Overlay
+Press **Enter** at any time to open the new Diagnostics Overlay. This view provides a consolidated summary of:
+*   **DNS Resolution Performance**: See exactly how long it takes to resolve your target's hostname.
+*   **Service Connectivity**: Real-time status of common web ports (80/443).
+*   **Extended Stats**: A focused view of ICMP metrics and packet loss.
+
+### 🌐 Web Check (Background Monitoring)
+You can now monitor more than just ICMP.
+*   **Toggle**: Press **W** to enable/disable background TCP checks.
+*   **Capability**: Monitors Port 80 (HTTP) and Port 443 (HTTPS) independently of your pings.
+*   **Use Case**: Detect if a target is reachable via ICMP but blocking web traffic (or vice versa).
+
+### ⚡ Async Engine Enhancements
+The network engine has been further decoupled. TCP checks run in their own non-blocking tasks, ensuring that even a slow or hung web check never impacts the accuracy of your latency graph.
+
+---
+
 # Release Notes - RustyPing v2.3.1
 
 **Release Date:** 2026-02-02

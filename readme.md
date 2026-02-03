@@ -1,18 +1,21 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.4.1-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
 **RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. It combines the utility of `ping` with the visual insights of a professional network analyzer, all within a sleek, responsive TUI (Text User Interface).
 
 Designed for network engineers, system administrators, and enthusiasts, RustyPing provides real-time visibility into your network's health with millisecond precision.
 
+## ✨ New in v2.4.0
+*   **Deep Diagnostics Overlay**: Press `Enter` to see real-time DNS resolution, HTTP/HTTPS connectivity checks, and detailed session stats.
+*   **Web Checks**: Background monitoring of Port 80 and 443 to detect firewall or service-level issues (toggle with `W`).
+*   **DNS Timing**: Automatic measurement of name resolution performance.
+
 ## ✨ New in v2.3.0
 *   **CSV Logging**: Export real-time latency data to a file for long-term analysis.
 *   **Jitter Metrics**: View the Standard Deviation of your connection latency to diagnose instability.
-*   **Monotone Mode**: High-contrast, color-free mode for improved accessibility and compatibility with e-ink displays or vintage terminals.
-*   **Extended Platform Support**: Native support for **Alpine Linux** (static musl builds) and **Proxmox LXC**.
 
 
 ---
