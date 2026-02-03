@@ -2,17 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.4.2] - 2026-02-03
+## [v2.4.3] - 2026-02-03
+
+### Added
+- **Linux Portable Launcher**: New `run_portable.sh` for instant Linux execution (`curl | bash`).
+- **Unified Quick Start**: Added one-liner portable commands for both Windows and Linux to README.
+- **Linux Utility Script**: Added `linux_install.sh` mirroring `linutil` with maintenance and optimization tools.
 
 ### Fixed
-- Hotfix release with deep debug improvements and linting fixes.
-- Fixed `test_network_intelligence_flow` compilation by adding `PingCommand::Stop`.
-- Refactored UI code for better performance and modern Rust idioms.
+- **Version Synchronization**: Standardized versioning across all 17+ files including manifests and scripts.
+- **Process Locking (Windows)**: Portable launcher now handles binary updates gracefully if an instance is running.
+- **Architecture Detection**: Automated detection for `x86_64` and `aarch64` in portable scripts.
 
-## [v2.4.1] - 2026-02-03 (Internal/Skipped)
-- Initial hotfix attempt.
+## [v2.4.2] - 2026-02-03 (Internal)
+- Version bump and release preparation.
 
-## [v2.4.0] - 2026-02-03
+## [v2.4.1] - 2026-02-03 (Hotfix)
+- Fixed `PingCommand::Stop` compilation error in tests.
+- Resolved Clippy warnings in `ping.rs` and `main.rs`.
 
 ### Network Intelligence & Deep Diagnostics
 Version 2.4.0 transforms RustyPing from a ping tool into a comprehensive network intelligence platform. This release introduces "Deep Diagnostics," allowing users to see beyond simple ICMP echo requests.

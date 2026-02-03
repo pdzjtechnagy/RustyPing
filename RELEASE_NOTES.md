@@ -1,20 +1,28 @@
-# Release Notes - RustyPing v2.4.2
+# Release Notes - RustyPing v2.4.3
 
 **Release Date:** 2026-02-03
 
-## 🔧 Critical Hotfix & Code Audit
+## 🚀 Unified Portable Experience
 
-This hotfix addresses critical stability issues found during a deep code audit and ensures the test suite is fully operational.
+RustyPing v2.4.3 introduces a standardized portable experience across Windows and Linux, making it easier than ever to run the tool without installation.
 
-### ✨ Key Changes
-*   **Test Suite Stability**: Resolved a compilation error in the network intelligence test flow.
-*   **Graceful Shutdown**: Background tasks now handle stop signals correctly, preventing orphaned processes.
-*   **Performance Optimization**: Cleaned up 9 Clippy warnings and optimized internal string formatting for better performance.
-*   **UI Polish**: Refined the startup menu's navigation logic for a smoother user experience.
+### ✨ Key Improvements
+*   **Linux Portable Launcher**: New `run_portable.sh` provides a one-liner experience for Linux users (`curl | bash`).
+*   **Linutil-Style Maintenance**: New `linux_install.sh` script for distribution-aware installation and system optimization.
+*   **Architecture Detection**: Both launchers now automatically detect `x86_64` and `arm64` architectures.
+*   **Zero-Install Priority**: Documentation now highlights portable runs as the primary way to get started.
+*   **Reliability**: Windows portable launcher now handles file locking, ensuring seamless updates even if the app is open.
 
 ---
 
-# Release Notes - RustyPing v2.4.1 (Internal)
+# Release Notes - RustyPing v2.4.2 (Internal)
+
+---
+
+# Release Notes - RustyPing v2.4.1 (Hotfix)
+
+*   **Compilation Fix**: Resolved missing `Stop` variant in `PingCommand` enum.
+*   **Code Quality**: Addressed multiple Clippy lints and warnings for better performance and safety.
 
 ---
 

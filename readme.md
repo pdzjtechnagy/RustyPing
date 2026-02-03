@@ -1,22 +1,22 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.4.2-green.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
+![Version](https://img.shields.io/badge/version-2.4.3-green.svg)
 
-**RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. It combines the utility of `ping` with the visual insights of a professional network analyzer, all within a sleek, responsive TUI (Text User Interface).
+---
 
-Designed for network engineers, system administrators, and enthusiasts, RustyPing provides real-time visibility into your network's health with millisecond precision.
+## ⚡ Quick Start (Portable One-Liners)
+Run the latest version of RustyPing instantly without installation.
 
-## ✨ New in v2.4.0
-*   **Deep Diagnostics Overlay**: Press `Enter` to see real-time DNS resolution, HTTP/HTTPS connectivity checks, and detailed session stats.
-*   **Web Checks**: Background monitoring of Port 80 and 443 to detect firewall or service-level issues (toggle with `W`).
-*   **DNS Timing**: Automatic measurement of name resolution performance.
+**Windows (PowerShell):**
+```powershell
+iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
+```
 
-## ✨ New in v2.3.0
-*   **CSV Logging**: Export real-time latency data to a file for long-term analysis.
-*   **Jitter Metrics**: View the Standard Deviation of your connection latency to diagnose instability.
-
+**Linux (Bash):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.sh | bash
+```
 
 ---
 
@@ -48,19 +48,14 @@ Check the [Releases](https://github.com/pdzjtechnagy/RustyPing/releases) page fo
 
 ### Option 3: Quick Install Scripts
 
-**Windows One-Liner (Portable / No Install):**
-```powershell
-iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
+**Linux Utility Menu (Linutil Style):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/linux_install.sh | sh
 ```
 
 **Windows Full Install (PowerShell):**
 ```powershell
 iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
-```
-
-**Linux (Debian/Fedora/Arch):**
-```bash
-curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/linux_install.sh | sh
 ```
 
 ---
