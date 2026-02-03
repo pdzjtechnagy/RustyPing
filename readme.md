@@ -58,6 +58,11 @@ iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_port
 iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/web_install.ps1 | iex
 ```
 
+**Linux (Debian/Fedora/Arch):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/linux_install.sh | sh
+```
+
 ---
 
 ## 🎮 Usage
