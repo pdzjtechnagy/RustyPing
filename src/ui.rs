@@ -376,10 +376,10 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
         if app.enable_web_check {
              Line::from(vec![
                  Span::styled("  HTTP(80): ", Style::default().fg(app.theme.low)),
-                 if let Some(t) = stats.tcp_port_80 {
-                     Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg))
-                 } else {
-                     Span::styled("     ---", Style::default().fg(app.theme.crit))
+                 match stats.tcp_port_80 {
+                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
+                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
                  }
              ])
         } else {
@@ -388,10 +388,10 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
         if app.enable_web_check {
              Line::from(vec![
                  Span::styled("  SSL(443): ", Style::default().fg(app.theme.low)),
-                 if let Some(t) = stats.tcp_port_443 {
-                     Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg))
-                 } else {
-                     Span::styled("     ---", Style::default().fg(app.theme.crit))
+                 match stats.tcp_port_443 {
+                     WebCheckStatus::Success(t) => Span::styled(format!("{:>6.1} ms", t), Style::default().fg(app.theme.fg)),
+                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
+                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
                  }
              ])
         } else {
