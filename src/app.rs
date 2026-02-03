@@ -86,7 +86,6 @@ impl App {
             ping_rx,
             log_writer,
             start_time: Instant::now(),
-            last_ping: Instant::now(),
             theme: if monotone { Theme::monotone() } else { Theme::blacksite() },
             current_tab: AppTab::Monitor,
             show_settings: false,

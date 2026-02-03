@@ -1,7 +1,7 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.3.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.4.0-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
 **RustyPing** is a high-performance, terminal-based network monitoring tool written in Rust. It combines the utility of `ping` with the visual insights of a professional network analyzer, all within a sleek, responsive TUI (Text User Interface).
@@ -96,8 +96,10 @@ While RustyPing is running, you can use the following keyboard shortcuts:
 | :--- | :--- |
 | **Q** | Quit the application |
 | **ESC** | Open Settings Menu |
+| **Enter** | Toggle **Diagnostics** Overlay |
 | **S** | Run **S**peed Test |
 | **P** | Run **P**ort Scan |
+| **W** | Toggle **W**eb Check (HTTP/S) |
 | **J** | Toggle **J**itter Panel |
 | **H** | Toggle **H**istory Panel |
 | **R** | **R**eset Statistics |

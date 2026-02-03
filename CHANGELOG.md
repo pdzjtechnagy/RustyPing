@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.4.0] - 2026-02-03
+
+### Network Intelligence & Deep Diagnostics
+Version 2.4.0 transforms RustyPing from a ping tool into a comprehensive network intelligence platform. This release introduces "Deep Diagnostics," allowing users to see beyond simple ICMP echo requests.
+
+### Added
+- **Network Intelligence Engine**:
+  - **DNS Resolution Time**: Now measures and displays the time taken to resolve the target domain name.
+  - **Web Check**: Background connectivity checks for HTTP (Port 80) and HTTPS (Port 443). Toggle this feature with `W`.
+- **Deep Diagnostics**:
+  - **Granular Error Reporting**: Distinguishes between "Connection Refused," "Timeout," and other IO errors for TCP checks.
+  - **Diagnostics Overlay**: A new dedicated overlay (toggle with `Enter`) provides a focused view of DNS, HTTP/S status, and detailed ping statistics.
+- **Async Architecture**:
+  - TCP checks run in independent, non-blocking `tokio` tasks to ensure the main ICMP ping loop remains perfectly timed, even during TCP timeouts.
+
+### Fixed
+- **Codebase Cleanup**: Removed unused fields and variants (`last_ping`, `PingCommand::Stop`) for a cleaner compilation.
+
 ## [v2.3.0] - 2026-02-01
 
 ### A Considerable Leap Forward

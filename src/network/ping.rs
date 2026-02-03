@@ -20,7 +20,6 @@ pub enum WebCheckStatus {
 
 #[derive(Debug)]
 pub enum PingCommand {
-    Stop,
     ToggleWebCheck(bool),
 }
 
