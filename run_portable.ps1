@@ -1,4 +1,4 @@
-# RustyPing Portable Launcher v2.4.2
+# RustyPing Portable Launcher v2.4.4
 # This script downloads the latest release binary to the Temp folder and runs it.
 
 $repo = "pdzjtechnagy/RustyPing"

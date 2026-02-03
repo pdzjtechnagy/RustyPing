@@ -21,6 +21,7 @@ pub enum WebCheckStatus {
 #[derive(Debug)]
 pub enum PingCommand {
     ToggleWebCheck(bool),
+    SetInterval(u64),
     #[allow(dead_code)]
     Stop,
 }
@@ -217,7 +218,7 @@ impl PingMonitor {
 }
 
 // Background Task Logic
-pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<PingCommand>, mpsc::Receiver<PingResult>, Option<f64>)> {
+pub async fn start_ping_task(target: &str, interval_ms: u64) -> Result<(IpAddr, mpsc::Sender<PingCommand>, mpsc::Receiver<PingResult>, Option<f64>)> {
     let start_dns = std::time::Instant::now();
     let target_addr: IpAddr = if let Ok(addr) = target.parse() {
         addr
@@ -238,7 +239,7 @@ pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<PingC
     tokio::spawn(async move {
         let mut pinger = client.pinger(addr, PingIdentifier(rand::random())).await;
         let mut seq = 0;
-        let mut interval = tokio::time::interval(Duration::from_millis(1000));
+        let mut interval = tokio::time::interval(Duration::from_millis(interval_ms));
         let mut web_check_enabled = false;
         
         loop {
@@ -298,6 +299,11 @@ pub async fn start_ping_task(target: &str) -> Result<(IpAddr, mpsc::Sender<PingC
                         Some(PingCommand::ToggleWebCheck(enabled)) => {
                             web_check_enabled = enabled;
                         }
+                        Some(PingCommand::SetInterval(ms)) => {
+                            interval = tokio::time::interval(Duration::from_millis(ms));
+                            // Reset the interval so it ticks from now
+                            interval.tick().await; 
+                        }
                     }
                 }
             }
@@ -316,7 +322,7 @@ mod tests {
     async fn test_network_intelligence_flow() {
         // 1. Start the ping task against Google DNS
         // Note: this actually performs network IO, so it might flake if offline.
-        let (addr, cmd_tx, mut res_rx, dns_duration) = start_ping_task("8.8.8.8").await.expect("Failed to start ping task");
+        let (addr, cmd_tx, mut res_rx, dns_duration) = start_ping_task("8.8.8.8", 1000).await.expect("Failed to start ping task");
         
         println!("Resolved 8.8.8.8 to {}", addr);
         assert!(dns_duration.is_some(), "DNS duration should be recorded");

@@ -1,7 +1,7 @@
 # RustyPing Installation Script
 # Installs rping.exe to a directory in PATH
 
-Write-Host "RustyPing v2.4.2 - Installation Script" -ForegroundColor Cyan
+Write-Host "RustyPing v2.4.4 - Installation Script" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 

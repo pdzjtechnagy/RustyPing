@@ -102,8 +102,13 @@ Show-Step "Compiling and installing (This takes 2-5 mins)..." 4 5
 Write-Host "     Please wait while Cargo compiles the binary." -ForegroundColor DarkGray
 
 try {
-    # Run cargo install and capture output to prevent clutter, but show errors if it fails
-    $result = cargo install --path . --force 2>&1
+    # Check if we need to install from path or just use cargo install
+    if (Test-Path "$tempDir\Cargo.toml") {
+        $result = cargo install --path . --force 2>&1
+    } else {
+        $result = cargo install rustyping --force 2>&1
+    }
+    
     if ($LASTEXITCODE -ne 0) {
         throw $result
     }

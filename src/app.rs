@@ -54,7 +54,7 @@ impl App {
         let config = history.config.clone();
         
         // Start background ping task
-        let (target_addr, ping_tx, ping_rx, dns_duration) = start_ping_task(&target).await?;
+        let (target_addr, ping_tx, ping_rx, dns_duration) = start_ping_task(&target, config.ping_interval_ms).await?;
 
         let mut ping_monitor = PingMonitor::new(
             target_addr,
@@ -204,6 +204,7 @@ impl App {
         let new_interval = self.config.ping_interval_ms.saturating_sub(50);
         if new_interval >= 50 {
             self.config.ping_interval_ms = new_interval;
+            let _ = self.ping_tx.try_send(PingCommand::SetInterval(new_interval));
         }
     }
 
@@ -213,6 +214,7 @@ impl App {
         let new_interval = self.config.ping_interval_ms + 50;
         if new_interval <= 5000 {
             self.config.ping_interval_ms = new_interval;
+            let _ = self.ping_tx.try_send(PingCommand::SetInterval(new_interval));
         }
     }
 

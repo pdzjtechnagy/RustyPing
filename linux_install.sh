@@ -43,7 +43,7 @@ print_banner() {
     clear
     echo -e "${CYAN}"
     echo "  ╔════════════════════════════════════════════════════════════╗"
-    echo "  ║                RustyPing Linux Utility v2.4.2              ║"
+    echo "  ║                RustyPing Linux Utility v2.4.4              ║"
     echo "  ╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
@@ -88,6 +88,13 @@ install_rustyping() {
         chmod +x "$TEMP_DIR/rping"
         echo -e "${YELLOW}[*] Installing to $INSTALL_DIR/rping (Requires Sudo)...${NC}"
         sudo mv "$TEMP_DIR/rping" "$INSTALL_DIR/rping"
+        
+        # Add capabilities for non-root ICMP if on Linux
+        if [ "$(uname)" == "Linux" ]; then
+            echo -e "${CYAN}[*] Setting network capabilities...${NC}"
+            sudo setcap cap_net_raw+ep "$INSTALL_DIR/rping" || echo -e "${YELLOW}[!] Warning: Could not set capabilities. You may need sudo to run rping.${NC}"
+        fi
+        
         echo -e "${GREEN}[+] RustyPing installed successfully!${NC}"
     else
         echo -e "${RED}[-] Download failed. Please check your internet connection.${NC}"

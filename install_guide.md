@@ -1,10 +1,10 @@
 # RustyPing 2.0 - Complete Installation Guide
 
-> **NOTE:** This is the manual installation guide. For the easiest setup, see the **One-Liner** method in `README.md` or `quickstart.md`.
+> **NOTE:** This is the manual installation and build guide. For the easiest setup, use the **Portable One-Liners** in [README.md](file:///c:/RustyPing/README.md).
 
 ## 📋 What You're Building
 
-**RustyPing 2.0** - A professional network monitoring tool with:
+**RustyPing 2.4.4** - A professional network monitoring tool with:
 
 - ✅ btop-style braille graphs
 - ✅ Blacksite theme (minimal, professional)
@@ -12,469 +12,61 @@
 - ✅ On-demand speed tests
 - ✅ Port scanning capability
 - ✅ Keyboard-driven interface
+- ✅ Linux/Windows Portable Launchers
 
-## 🚀 Step-by-Step Installation (Fresh Windows 11 25H2)
+## 🚀 Step-by-Step Build Guide (Windows)
 
-### Step 1: Install MSVC Build Tools (The Hard Part)
+### Step 1: Install MSVC Build Tools
+Rust on Windows requires the **MSVC v143 - VS 2022 C++ x64/x86 build tools**.
 
-Rust on Windows requires the **MSVC v143 - VS 2022 C++ x64/x86 build tools**. This is the compiler and linker backend.
-
-We have ranked the installation methods from **Easiest** to **Most Complex**.
-
-#### 🥇 Level 1: The "One-Liner" (Winget) - **Recommended**
-*Best for: Users who want it done fast with zero clicking.*
-
-Copy and run this **exact** command in PowerShell. It passes arguments directly to the installer to select the C++ workload automatically.
-
+#### 🥇 Recommended Method (Winget)
 ```powershell
 winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
 ```
 
-*   **--passive**: Shows a progress bar but requires no clicks.
-*   **--wait**: Waits for the install to finish before returning control.
-*   **--add ...VCTools**: Selects the "Desktop development with C++" workload (includes MSVC v143).
-*   **--includeRecommended**: Adds the Windows SDK (critical for network programming).
-
----
-
-#### 🥈 Level 2: The "Visual" Way (GUI Installer)
-*Best for: Users who want to see exactly what they are installing.*
-
-1.  **Download**: [Visual Studio 2022 Build Tools](https://aka.ms/vs/17/release/vs_buildtools.exe).
-2.  **Run**: Launch `vs_buildtools.exe`.
-3.  **Workloads Tab**:
-    *   Check the box for **"Desktop development with C++"**.
-4.  **Installation Details (Right Panel)**:
-    *   Ensure **"MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)"** is checked.
-    *   Ensure **"Windows 11 SDK (10.0.xxxxx.x)"** is checked.
-5.  **Action**: Click the **Install** button in the bottom right.
-
----
-
-#### 🥉 Level 3: The "Automator" (PowerShell Script)
-*Best for: IT Admins or setting up a new PC automatically.*
-
-Save this as `install_tools.ps1` and run it as Administrator. It downloads the installer and runs it silently.
-
-```powershell
-# URL for the latest VS 2022 Build Tools Bootstrapper
-$url = "https://aka.ms/vs/17/release/vs_buildtools.exe"
-$out = "$env:TEMP\vs_buildtools.exe"
-
-Write-Host "Downloading VS Build Tools..." -ForegroundColor Cyan
-Invoke-WebRequest -Uri $url -OutFile $out
-
-Write-Host "Installing MSVC v143 and SDK... (This will take a while)" -ForegroundColor Cyan
-# --norestart prevents rebooting automatically
-# --quiet hides the UI completely (use --passive to see progress)
-Start-Process -FilePath $out -ArgumentList "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended" -Wait
-
-Write-Host "Installation Complete!" -ForegroundColor Green
-```
-
----
-
-#### 🏅 Level 4: The "Package Manager" (Chocolatey)
-*Best for: Users who already use Chocolatey.*
-
-```powershell
-choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
-```
-
----
-
-### Step 1.5: Install Rust (If not installed)
-
-Once the Build Tools are ready, install Rust itself:
-
+### Step 2: Install Rust
 ```powershell
 winget install Rustlang.Rustup
+# Close and reopen terminal after this!
 ```
 
-**⚠️ CRITICAL: Close and reopen your terminal after installing Rust to refresh your PATH!**
-
-### Step 2: Create Project Structure
-
-```cmd
-mkdir C:\PINGTOOL\rustyping2
-cd C:\PINGTOOL\rustyping2
-mkdir src
-mkdir src\network
+### Step 3: Clone & Build
+```powershell
+git clone https://github.com/pdzjtechnagy/RustyPing.git
+cd RustyPing
+cargo build --release
 ```
 
-### Step 3: Copy All Files
+## 🛠️ Installation Methods
 
-You need to copy these files from the artifacts:
-
-#### Root Directory (`C:\PINGTOOL\rustyping2\`)
-
-1. ✅ `Cargo.toml` - Project configuration
-2. ✅ `build_rustyping.bat` - Build script
-3. ✅ `RUSTYPING_README.md` - Documentation
-4. ✅ `INSTALL_GUIDE.md` - This file
-
-#### src Directory (`C:\PINGTOOL\rustyping2\src\`)
-
-5. ✅ `main.rs` - Entry point
-6. ✅ `app.rs` - Core application logic
-7. ✅ `ui.rs` - TUI rendering with braille
-8. ✅ `theme.rs` - Blacksite color scheme
-9. ✅ `storage.rs` - History & config management
-10. ⚠️ `config.rs` - **CREATE THIS** (see below)
-
-#### src/network Directory (`C:\PINGTOOL\rustyping2\src\network\`)
-
-11. ✅ `mod.rs` - Network module
-12. ⚠️ `ping.rs` - **CREATE THIS** (see below)
-13. ⚠️ `speedtest.rs` - **CREATE THIS** (see below)
-14. ⚠️ `portscan.rs` - **CREATE THIS** (see below)
-
-### Step 4: Create Missing Files
-
-#### File: `src/config.rs`
-
-```rust
-// Placeholder - will be expanded later
-pub struct Config;
+### Windows (Winget)
+```powershell
+winget install rustyping
 ```
 
-#### File: `src/network/ping.rs`
-
-```rust
-use super::NetworkStats;
-use anyhow::Result;
-use std::collections::VecDeque;
-use std::net::IpAddr;
-use surge_ping::{Client, Config, PingIdentifier, PingSequence};
-use std::time::Duration;
-
-pub struct PingMonitor {
-    client: Client,
-    target: String,
-    target_addr: IpAddr,
-    history: VecDeque<Option<f64>>,
-    recent: VecDeque<f64>,
-    max_history: usize,
-    total_pings: u64,
-    successful_pings: u64,
-    failed_pings: u64,
-}
-
-impl PingMonitor {
-    pub async fn new(target: &str, max_history: usize) -> Result<Self> {
-        let target_addr: IpAddr = if let Ok(addr) = target.parse() {
-            addr
-        } else {
-            use tokio::net::lookup_host;
-            let mut addrs = lookup_host(format!("{}:0", target)).await?;
-            addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
-        };
-
-        let config = Config::default();
-        let client = Client::new(&config)?;
-
-        Ok(Self {
-            client,
-            target: target.to_string(),
-            target_addr,
-            history: VecDeque::with_capacity(max_history),
-            recent: VecDeque::with_capacity(10),
-            max_history,
-            total_pings: 0,
-            successful_pings: 0,
-            failed_pings: 0,
-        })
-    }
-
-    pub async fn ping(&mut self) -> Result<()> {
-        let mut pinger = self.client.pinger(self.target_addr, PingIdentifier(rand::random())).await;
-        pinger.timeout(Duration::from_secs(1));
-
-        self.total_pings += 1;
-
-        match pinger.ping(PingSequence(0), &[]).await {
-            Ok((_, duration)) => {
-                let ms = duration.as_secs_f64() * 1000.0;
-                self.successful_pings += 1;
-                self.history.push_back(Some(ms));
-                self.recent.push_back(ms);
-
-                if self.recent.len() > 10 {
-                    self.recent.pop_front();
-                }
-            }
-            Err(_) => {
-                self.failed_pings += 1;
-                self.history.push_back(None);
-            }
-        }
-
-        if self.history.len() > self.max_history {
-            self.history.pop_front();
-        }
-
-        Ok(())
-    }
-
-    pub fn latency_data(&self) -> &VecDeque<Option<f64>> {
-        &self.history
-    }
-
-    pub fn stats(&self) -> NetworkStats {
-        let valid: Vec<f64> = self.history.iter().filter_map(|&x| x).collect();
-        let recent_valid: Vec<f64> = self.recent.iter().copied().collect();
-
-        let current_response = self.history.back().and_then(|&x| x);
-        let current_avg = if !recent_valid.is_empty() {
-            recent_valid.iter().sum::<f64>() / recent_valid.len() as f64
-        } else {
-            0.0
-        };
-
-        let avg_response = if !valid.is_empty() {
-            valid.iter().sum::<f64>() / valid.len() as f64
-        } else {
-            0.0
-        };
-
-        let min_response = valid.iter().fold(f64::INFINITY, |a, &b| a.min(b));
-        let max_response = valid.iter().fold(0.0, |a, &b| a.max(b));
-
-        let uptime_pct = if self.total_pings > 0 {
-            (self.successful_pings as f64 / self.total_pings as f64) * 100.0
-        } else {
-            0.0
-        };
-
-        let packet_loss_pct = if self.total_pings > 0 {
-            (self.failed_pings as f64 / self.total_pings as f64) * 100.0
-        } else {
-            0.0
-        };
-
-        // Calculate jitter (standard deviation of latency)
-        let jitter = if valid.len() > 1 {
-            let mean = avg_response;
-            let variance = valid.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / valid.len() as f64;
-            variance.sqrt()
-        } else {
-            0.0
-        };
-
-        let stability = (100.0 - (jitter / avg_response.max(1.0) * 100.0)).max(0.0).min(100.0);
-
-        let quality = if current_response.is_none() {
-            "OFFLINE".to_string()
-        } else if current_avg < 30.0 {
-            "EXCELLENT".to_string()
-        } else if current_avg < 100.0 {
-            "GOOD".to_string()
-        } else if current_avg < 200.0 {
-            "FAIR".to_string()
-        } else {
-            "POOR".to_string()
-        };
-
-        NetworkStats {
-            current_response,
-            current_avg,
-            avg_response,
-            min_response,
-            max_response,
-            uptime_pct,
-            packet_loss_pct,
-            jitter,
-            stability,
-            quality,
-        }
-    }
-
-    pub fn quality(&self) -> String {
-        self.stats().quality
-    }
-
-    pub fn reset(&mut self) {
-        self.history.clear();
-        self.recent.clear();
-        self.total_pings = 0;
-        self.successful_pings = 0;
-        self.failed_pings = 0;
-    }
-}
+### Linux (Generic)
+Use the [linux_install.sh](file:///c:/RustyPing/linux_install.sh) for a menu-driven experience:
+```bash
+curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/linux_install.sh | bash
 ```
 
-#### File: `src/network/speedtest.rs`
-
-```rust
-use anyhow::Result;
-
-pub struct SpeedTest {
-    // TODO: Implement speedtest
-}
-
-impl SpeedTest {
-    pub async fn new(_target: &str) -> Result<Self> {
-        Ok(Self {})
-    }
-
-    pub async fn update(&mut self) -> Result<bool> {
-        // Returns true when complete
-        Ok(true)
-    }
-}
-```
-
-#### File: `src/network/portscan.rs`
-
-```rust
-use anyhow::Result;
-
-pub struct PortScanner {
-    // TODO: Implement port scanner
-}
-
-impl PortScanner {
-    pub async fn new(_target: &str) -> Result<Self> {
-        Ok(Self {})
-    }
-
-    pub async fn update(&mut self) -> Result<bool> {
-        // Returns true when complete
-        Ok(true)
-    }
-}
-```
-
-### Step 5: Verify File Structure
-
-Your directory should look like:
-
-```
-C:\PINGTOOL\rustyping2\
-├── Cargo.toml
-├── build_rustyping.bat
-├── RUSTYPING_README.md
-├── INSTALL_GUIDE.md
-└── src/
-    ├── main.rs
-    ├── app.rs
-    ├── ui.rs
-    ├── theme.rs
-    ├── storage.rs
-    ├── config.rs
-    └── network/
-        ├── mod.rs
-        ├── ping.rs
-        ├── speedtest.rs
-        └── portscan.rs
-```
-
-### Step 6: Build
-
-```cmd
-cd C:\PINGTOOL\rustyping2
-.\build_rustyping.bat
-```
-
-**First build takes 3-5 minutes!** It downloads and compiles all dependencies.
-
-### Step 7: Test Run
-
-```cmd
-# Run with target
-.\target\release\rping.exe 8.8.8.8
-
-# Or run interactively
-.\target\release\rping.exe
-```
-
-### Step 8: Create Launcher (Optional)
-
-```cmd
-# Create rping.bat in the rustyping2 directory
-echo @.\target\release\rping.exe %* > rping.bat
-
-# Now you can run:
-.\rping.bat 8.8.8.8
-```
-
-### Step 9: Add to PATH (Optional)
-
-```cmd
-# Add C:\PINGTOOL\rustyping2 to your PATH
-# Then you can run from anywhere:
-rping 8.8.8.8
+### macOS (Homebrew)
+```bash
+brew tap pdzjtechnagy/tap
+brew install rustyping
 ```
 
 ## ⚠️ Troubleshooting
 
 ### Build Error: "linker link.exe not found"
-
-```cmd
-# Install Visual Studio Build Tools
-winget install Microsoft.VisualStudio.2022.BuildTools
-
-# OR switch to GNU toolchain
-rustup default stable-x86_64-pc-windows-gnu
-```
-
-### Build Error: "cannot find module"
-
-- Check all files are in correct locations
-- Verify `src/network/mod.rs` exists
-- Ensure all `*.rs` files are properly named
-
-### Runtime Error: "Permission denied"
-
-```cmd
-# Run as Administrator (ICMP requires privileges)
-Start-Process powershell -Verb RunAs
-cd C:\PINGTOOL\rustyping2
-.\target\release\rping.exe
-```
+Ensure Visual Studio Build Tools are installed with the "Desktop development with C++" workload.
 
 ### Braille characters display as boxes
+Use **Windows Terminal** or a modern terminal emulator with a font like **Cascadia Code** or **JetBrains Mono**.
 
-- Use Windows Terminal (not cmd.exe)
-- Install a modern font (Cascadia Code, JetBrains Mono)
-
-## ✅ Success Indicators
-
-You'll know it works when you see:
-
-1. ✅ **Smooth braille graph** in the latency panel
-2. ✅ **Blacksite colors** (dark theme, muted colors)
-3. ✅ **Real-time updates** every second
-4. ✅ **History persists** between sessions (`rping` shows last targets)
-5. ✅ **ESC menu** opens settings overlay
-
-## 🎯 Next Steps
-
-Once working:
-
-1. Try `rping --list` to see history
-2. Press `ESC` to open settings
-3. Press `S` to run speed test (stub for now)
-4. Press `P` to run port scan (stub for now)
-5. Monitor different targets to build history
-
-## 📝 Status: v2.3.1 - Production Ready
-
-✅ Working:
-
-- Braille graphs
-- Ping monitoring
-- Jitter calculation
-- History & fuzzy find
-- Settings menu
-- Blacksite theme
-
-⚠️ Stubs (to implement later):
-
-- Speed test (shows message, doesn't actually test)
-- Port scan (shows message, doesn't actually scan)
-- Multi-target tabs
-
----
-
-**You now have a working btop-style network monitor!** 🎉
+### Permission Denied (Linux/macOS)
+Some network operations (ICMP) may require `sudo` or specific capabilities:
+```bash
+# On Linux, you can grant the binary capability to avoid using sudo:
+sudo setcap cap_net_raw+ep ./target/release/rping
+```
