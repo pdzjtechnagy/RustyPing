@@ -1,5 +1,5 @@
 PackageIdentifier: RustyPing.RustyPing
-PackageVersion: 2.4.4
+PackageVersion: 2.4.5
 PackageLocale: en-US
 Publisher: RustyPing Team
 PackageName: RustyPing
@@ -14,7 +14,7 @@ Tags:
 Installers:
   - Architecture: x64
     InstallerType: portable
-    InstallerUrl: https://github.com/pdzjtechnagy/RustyPing/releases/download/v2.4.4/rustyping-windows-v2.4.4.zip
+    InstallerUrl: https://github.com/pdzjtechnagy/RustyPing/releases/download/v2.4.5/rustyping-windows-v2.4.5.zip
     InstallerSha256: REPLACE_WITH_SHA256
 ManifestType: singleton
 ManifestVersion: 1.0.0

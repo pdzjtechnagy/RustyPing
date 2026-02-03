@@ -1,21 +1,47 @@
+# Release Notes - RustyPing v2.4.5
+
+**Release Date:** 2026-02-03
+
+## 🛠️ The "110% Functionality" Update
+
+RustyPing v2.4.5 is a major reliability and UX release, addressing core logic bugs and enhancing the "zero-install" experience across all platforms.
+
+### ✨ Key Improvements
+*   **Dynamic Ping Control**: Fixed a critical bug where ping interval adjustments (Arrow Keys) were not propagating to the network task.
+*   **Linux Capability Support**: The installer now automatically sets `cap_net_raw+ep`, allowing ICMP pings without `sudo`.
+*   **Unified Portable Launchers**: Standardized GitHub API-driven one-liners for Windows and Linux.
+*   **Compiler-Level Polish**: Zero-warning build with fully optimized release profiles.
+
+---
+
 # Release Notes - RustyPing v2.4.3
 
 **Release Date:** 2026-02-03
 
 ## 🚀 Unified Portable Experience
 
-RustyPing v2.4.3 introduces a standardized portable experience across Windows and Linux, making it easier than ever to run the tool without installation.
+RustyPing v2.4.3 introduced a standardized portable experience across Windows and Linux, making it easier than ever to run the tool without installation.
 
 ### ✨ Key Improvements
 *   **Linux Portable Launcher**: New `run_portable.sh` provides a one-liner experience for Linux users (`curl | bash`).
 *   **Linutil-Style Maintenance**: New `linux_install.sh` script for distribution-aware installation and system optimization.
 *   **Architecture Detection**: Both launchers now automatically detect `x86_64` and `arm64` architectures.
 *   **Zero-Install Priority**: Documentation now highlights portable runs as the primary way to get started.
-*   **Reliability**: Windows portable launcher now handles file locking, ensuring seamless updates even if the app is open.
 
 ---
 
 # Release Notes - RustyPing v2.4.2 (Internal)
+
+**Release Date:** 2026-02-03
+
+## 🔧 Infrastructure & Global Sync
+
+RustyPing v2.4.2 was an internal milestone focused on synchronizing the ecosystem for multi-platform distribution.
+
+### ✨ Key Improvements
+*   **Global Version Audit**: Synchronized version strings across 17+ files including Winget, Debian, and Homebrew manifests.
+*   **Documentation Overhaul**: Complete rewrite of `INSTALL.md` and `README.md` to reflect the new async architecture.
+*   **Build System**: Optimized `release_helper.ps1` for automated artifact preparation.
 
 ---
 

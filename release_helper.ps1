@@ -1,9 +1,9 @@
-# Release Helper Script for RustyPing v2.4.4
+# Release Helper Script for RustyPing v2.4.5
 # Run this script in PowerShell to build and prepare for release.
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🚀 Starting Release Process for v2.4.4..." -ForegroundColor Cyan
+Write-Host "🚀 Starting Release Process for v2.4.5..." -ForegroundColor Cyan
 
 # 1. Verify Cargo is installed
 if (-not (Get-Command "cargo" -ErrorAction SilentlyContinue)) {
@@ -38,19 +38,18 @@ Write-Host "`n📦 READY TO PUBLISH!" -ForegroundColor Cyan
 Write-Host "Perform the following steps manually to push to GitHub:" -ForegroundColor White
 Write-Host "---------------------------------------------------" -ForegroundColor Gray
 Write-Host "1. git add ." -ForegroundColor Yellow
-Write-Host "2. git commit -m 'chore: release v2.4.4'" -ForegroundColor Yellow
-Write-Host "3. git tag -a v2.4.4 -m 'Release v2.4.4'" -ForegroundColor Yellow
+Write-Host "2. git commit -m 'chore: release v2.4.5'" -ForegroundColor Yellow
+Write-Host "3. git tag -a v2.4.5 -m 'Release v2.4.5'" -ForegroundColor Yellow
 Write-Host "4. git push origin main" -ForegroundColor Yellow
-Write-Host "5. git push origin --tags" -ForegroundColor Yellow
+Write-Host "5. git push origin v2.4.5" -ForegroundColor Yellow
 Write-Host "---------------------------------------------------" -ForegroundColor Gray
 
 Write-Host "`n🌐 GITHUB RELEASE STEPS:" -ForegroundColor Cyan
 Write-Host "1. Go to: https://github.com/pdzjtechnagy/RustyPing/releases/new" -ForegroundColor White
-Write-Host "2. Select Tag: v2.4.4" -ForegroundColor White
-Write-Host "3. Title: v2.4.4 - Unified Portable Experience" -ForegroundColor White
-Write-Host "4. Paste CHANGELOG.md contents into description." -ForegroundColor White
+Write-Host "2. Select Tag: v2.4.5" -ForegroundColor White
+Write-Host "3. Title: v2.4.5 - The 110% Functionality Update" -ForegroundColor White
+Write-Host "4. Paste RELEASE_NOTES.md contents into description." -ForegroundColor White
 Write-Host "5. Upload: .\target\release\rping.exe" -ForegroundColor White
 Write-Host "6. Click 'Publish Release'" -ForegroundColor White
-
 
 Write-Host "`n✅ Script Complete." -ForegroundColor Green

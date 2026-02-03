@@ -18,7 +18,7 @@ function Show-Header {
  |_| \_\\__,_|___/\__|\__, |_|   |_|_| |_|\__, |
                       |___/               |___/ 
     " -ForegroundColor $cyan
-    Write-Host "  :: NETWORK MONITORING SUITE v2.3.1 ::" -ForegroundColor $white
+    Write-Host "  :: NETWORK MONITORING SUITE v2.4.5 ::" -ForegroundColor $white
     Write-Host ""
 }
 

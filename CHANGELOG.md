@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.4.5] - 2026-02-03
+
+### Fixed
+- **Dynamic Ping Control**: Resolved logic error where ping interval changes were not sent to the background network task.
+- **Test Suite**: Updated `test_network_intelligence_flow` to match new `start_ping_task` signature.
+
+### Added
+- **Linux Capability Management**: Installer now automates `setcap` for non-root ICMP access.
+- **Deep Debug Audit**: Zero-warning compiler state with enhanced Clippy enforcement.
+
+## [v2.4.4] - 2026-02-03 (Internal)
+- Version bump for deep debug and verification cycle.
+
 ## [v2.4.3] - 2026-02-03
 
 ### Added
