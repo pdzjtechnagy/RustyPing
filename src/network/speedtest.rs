@@ -2,6 +2,7 @@ use anyhow::Result;
 use futures_util::StreamExt;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
+use tracing::{debug, error, info, trace};
 
 #[derive(Debug, Clone)]
 pub enum SpeedTestEvent {
@@ -145,6 +146,7 @@ impl SpeedTest {
 
 async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let test_url = "https://speed.cloudflare.com/__down?bytes=25000000"; // 25MB
+    debug!("Starting download test from: {}", test_url);
 
     let client_res = reqwest::Client::builder()
         .timeout(Duration::from_secs(60))
@@ -153,6 +155,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let client = match client_res {
         Ok(c) => c,
         Err(e) => {
+            error!("Failed to create reqwest client: {}", e);
             let _ = tx
                 .send(SpeedTestEvent::Error(format!(
                     "Failed to create client: {e}"
@@ -167,8 +170,12 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let mut peak_speed = 0.0_f64;
 
     let response = match client.get(test_url).send().await {
-        Ok(r) => r,
+        Ok(r) => {
+            debug!("Download request successful: status={}", r.status());
+            r
+        }
         Err(e) => {
+            error!("Download network error: {}", e);
             let _ = tx
                 .send(SpeedTestEvent::Error(format!("Network error: {e}")))
                 .await;
@@ -177,6 +184,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     };
 
     if !response.status().is_success() {
+        error!("Download HTTP error: {}", response.status());
         let _ = tx
             .send(SpeedTestEvent::Error(format!(
                 "HTTP error: {}",
@@ -193,6 +201,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         let chunk = match chunk_result {
             Ok(c) => c,
             Err(e) => {
+                error!("Download stream read error: {}", e);
                 let _ = tx
                     .send(SpeedTestEvent::Error(format!("Read error: {e}")))
                     .await;
@@ -201,6 +210,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         };
 
         total_bytes += chunk.len() as u64;
+        trace!("Download chunk: size={}, total={}", chunk.len(), total_bytes);
 
         // Update progress every 100ms to avoid flooding channel
         if last_update.elapsed() >= Duration::from_millis(100) {
@@ -227,6 +237,9 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         0.0
     };
 
+    info!("Download complete: total_bytes={}, avg_speed={:.2}Mbps, peak_speed={:.2}Mbps, duration={:?}", 
+        total_bytes, avg_speed, peak_speed, duration);
+
     // Final calculation (Mbps)
     let download_mbps = avg_speed; // avg_speed is already in Mbps if calculated as (bytes*8)/micro/1000000? No.
                                    // Wait, previous code: (total_bytes as f64 * 8.0) / (elapsed.as_secs_f64() * 1_000_000.0)
@@ -243,6 +256,7 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
 
 async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     let test_url = "https://speed.cloudflare.com/__up";
+    debug!("Starting upload test to: {}", test_url);
 
     let client = match reqwest::Client::builder()
         .timeout(Duration::from_secs(60))
@@ -250,6 +264,7 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     {
         Ok(c) => c,
         Err(e) => {
+            error!("Failed to create reqwest client for upload: {}", e);
             let _ = tx
                 .send(SpeedTestEvent::Error(format!(
                     "Failed to create client: {e}"
@@ -261,6 +276,7 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
 
     // 10MB of random data
     let data_size = 10 * 1024 * 1024;
+    debug!("Generating {} bytes of random data for upload", data_size);
     let data: Vec<u8> = (0..data_size).map(|_| rand::random::<u8>()).collect();
 
     let test_start = Instant::now();
@@ -268,9 +284,14 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     // Notify start
     let _ = tx.send(SpeedTestEvent::UploadProgress { bytes: 0 }).await;
 
+    debug!("Sending POST request for upload test");
     let response = match client.post(test_url).body(data).send().await {
-        Ok(r) => r,
+        Ok(r) => {
+            debug!("Upload request successful: status={}", r.status());
+            r
+        }
         Err(e) => {
+            error!("Upload network error: {}", e);
             let _ = tx
                 .send(SpeedTestEvent::Error(format!("Network error: {e}")))
                 .await;
@@ -279,6 +300,7 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     };
 
     if !response.status().is_success() {
+        error!("Upload HTTP error: {}", response.status());
         let _ = tx
             .send(SpeedTestEvent::Error(format!(
                 "HTTP error: {}",
@@ -296,6 +318,9 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
     } else {
         0.0
     };
+
+    info!("Upload complete: total_bytes={}, mbps={:.2}Mbps, duration={:?}", 
+        total_bytes, upload_mbps, duration);
 
     let _ = tx
         .send(SpeedTestEvent::UploadComplete {

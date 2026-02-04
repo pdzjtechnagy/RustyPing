@@ -31,9 +31,9 @@ jobs:
       - name: Security Audit
         uses: actions-rust-lang/audit@v1
         with:
-          # Ignore RUSTSEC-2026-0002 (lru) as it's transitive and currently unfixable
-          # Ignore RUSTSEC-2025-0134 (rustls-pemfile) if it still persists
-          ignore: RUSTSEC-2026-0002, RUSTSEC-2025-0134
+          # We've upgraded reqwest and lru to fix previous vulnerabilities.
+          # If new ones appear that are unfixable, add them here.
+          ignore: 
 
   build-linux:
     name: Build Linux (${{ matrix.target }})
@@ -79,14 +79,10 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
-      - name: Install cross
-        run: cargo install cross
-
-      - name: Debug Info
-        run: |
-          pwd
-          ls -R
-        shell: bash
+      - name: Install tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross,cargo-deb,cargo-generate-rpm
 
       - name: Build with cross
         run: cross build --release --target ${{ matrix.target }}
@@ -106,9 +102,6 @@ jobs:
       - name: Build DEB
         if: contains(matrix.target, 'linux-gnu')
         run: |
-          cargo install cargo-deb
-          # cargo-deb looks for the binary in target/<target>/release/rping
-          # or target/release/rping. We already have it in target/<target>/release/rping
           cargo deb --target ${{ matrix.target }} --no-build
           cp target/${{ matrix.target }}/debian/*.deb .
         shell: bash
@@ -116,7 +109,6 @@ jobs:
       - name: Build RPM
         if: contains(matrix.target, 'linux-gnu')
         run: |
-          cargo install cargo-generate-rpm
           # We need the binary in target/release/ for cargo-generate-rpm
           mkdir -p target/release
           cp target/${{ matrix.target }}/release/rping target/release/

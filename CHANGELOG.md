@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.5.7] - 2026-02-04
+
+### Added
+- **Logging System**: Integrated `tracing` and `tracing-subscriber` for deep application diagnostics.
+- **Enhanced Debugging**: Added verbose logs for `ping`, `speedtest`, and `app` state transitions.
+
+### Changed
+- **Network Stack**: Upgraded `reqwest` to `0.12` using `rustls-tls` for better security and Hyper 1.0 support.
+- **CI/CD Optimization**: Switched to `taiki-e/install-action` for 2x faster tool installation in GitHub Actions.
+- **Version Branding**: Unified all scripts and banners to `v2.5.7`.
+
+### Fixed
+- **Security Audit**: Resolved transitive dependency vulnerabilities in `lru` and `rustls-pemfile`.
+- **Compiler Warnings**: Cleaned up unused imports and unlined format arguments.
+
 ## [v2.5.4] - 2026-02-03
 
 ### Fixed

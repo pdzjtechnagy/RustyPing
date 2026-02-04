@@ -1,3 +1,21 @@
+# Release Notes - RustyPing v2.5.7
+
+**Release Date:** 2026-02-04
+
+## 🚀 The "Stability & Diagnostics" Update
+
+RustyPing v2.5.7 introduces a comprehensive logging system and modernized networking stack to ensure reliability across all platforms.
+
+### ✨ Key Highlights
+
+*   **Deep Diagnostics**: Integrated `tracing` framework for detailed application logs.
+*   **Modern Network Stack**: Upgraded to `reqwest` 0.12 with `rustls` for improved security and performance.
+*   **Security Audit Pass**: Resolved transitive dependency vulnerabilities (`lru`, `rustls-pemfile`).
+*   **Enhanced Speedtest Logs**: Verbose logging for download/upload tasks to aid in troubleshooting.
+*   **Optimized CI/CD**: Faster builds using `taiki-e/install-action` and improved linting.
+
+---
+
 # Release Notes - RustyPing v2.5.4
 
 **Release Date:** 2026-02-03

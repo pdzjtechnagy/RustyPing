@@ -8,6 +8,7 @@ use tokio::sync::mpsc;
 
 use std::io;
 use tokio::net::TcpStream;
+use tracing::{debug, error, info, trace, warn};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WebCheckStatus {
@@ -227,17 +228,28 @@ pub async fn start_ping_task(
     Option<f64>,
 )> {
     let start_dns = std::time::Instant::now();
+    debug!("Resolving target: {}", target);
     let target_addr: IpAddr = if let Ok(addr) = target.parse() {
         addr
     } else {
         use tokio::net::lookup_host;
-        let mut addrs = lookup_host(format!("{target}:0")).await?;
-        addrs
-            .next()
-            .ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?
-            .ip()
+        match lookup_host(format!("{target}:0")).await {
+            Ok(mut addrs) => {
+                let addr = addrs
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?
+                    .ip();
+                info!("Resolved {} to {}", target, addr);
+                addr
+            }
+            Err(e) => {
+                error!("DNS resolution failed for {}: {}", target, e);
+                return Err(e.into());
+            }
+        }
     };
     let dns_duration = start_dns.elapsed().as_secs_f64() * 1000.0;
+    debug!("DNS resolution took {:.2}ms", dns_duration);
 
     let (cmd_tx, mut cmd_rx) = mpsc::channel(1);
     let (res_tx, res_rx) = mpsc::channel(100);
@@ -295,9 +307,15 @@ pub async fn start_ping_task(
                      match tokio::time::timeout(Duration::from_secs(2), pinger.ping(PingSequence(seq), &payload)).await {
                          Ok(Ok((_, duration))) => {
                              let ms = duration.as_secs_f64() * 1000.0;
+                             trace!("Ping Success: seq={} latency={:.2}ms", seq, ms);
                              let _ = res_tx.send(PingResult::Success(ms)).await;
                          }
-                         _ => {
+                         Ok(Err(e)) => {
+                             warn!("Ping Error: seq={} error={}", seq, e);
+                             let _ = res_tx.send(PingResult::Timeout).await;
+                         }
+                         Err(_) => {
+                             warn!("Ping Timeout: seq={}", seq);
                              let _ = res_tx.send(PingResult::Timeout).await;
                          }
                      }

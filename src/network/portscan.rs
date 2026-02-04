@@ -3,6 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
+use tracing::{debug, info, trace, warn};
 
 #[derive(Debug, Clone)]
 pub struct PortResult {
@@ -30,15 +31,18 @@ pub struct PortScanner {
 impl PortScanner {
     pub async fn new(target: &str) -> Result<Self> {
         // Resolve target to IP
+        debug!("Scanner resolving: {}", target);
         let target_ip: IpAddr = if let Ok(addr) = target.parse() {
             addr
         } else {
             use tokio::net::lookup_host;
             let mut addrs = lookup_host(format!("{target}:0")).await?;
-            addrs
+            let addr = addrs
                 .next()
                 .ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?
-                .ip()
+                .ip();
+            info!("Scanner resolved {} to {}", target, addr);
+            addr
         };
 
         // Common ports to scan
@@ -116,11 +120,21 @@ impl PortScanner {
 
     async fn scan_port(&self, port: u16) -> PortStatus {
         let addr = SocketAddr::new(self.target_ip, port);
+        trace!("Scanning port: {}", port);
 
         match timeout(Duration::from_secs(2), TcpStream::connect(&addr)).await {
-            Ok(Ok(_)) => PortStatus::Open,
-            Ok(Err(_)) => PortStatus::Closed,
-            Err(_) => PortStatus::Filtered, // Timeout
+            Ok(Ok(_)) => {
+                debug!("Port {} is OPEN", port);
+                PortStatus::Open
+            }
+            Ok(Err(e)) => {
+                trace!("Port {} is CLOSED ({})", port, e);
+                PortStatus::Closed
+            }
+            Err(_) => {
+                warn!("Port {} is FILTERED (Timeout)", port);
+                PortStatus::Filtered
+            }
         }
     }
 

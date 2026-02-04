@@ -4,6 +4,7 @@ use crate::network::{
 use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
 use chrono::Local;
+use tracing::{debug, info, trace};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
@@ -52,18 +53,23 @@ pub struct App {
 
 impl App {
     pub async fn new(target: String, log_file: Option<String>, monotone: bool) -> Result<Self> {
+        info!("Initializing App for target: {}", target);
         let history = TargetHistory::load()?;
         let config = history.config.clone();
+        debug!("Loaded configuration: {:?}", config);
 
         // Start background ping task
+        debug!("Starting background ping task...");
         let (target_addr, ping_tx, ping_rx, dns_duration) =
             start_ping_task(&target, config.ping_interval_ms).await?;
+        info!("Ping task started. Target addr: {}, DNS duration: {:?}", target_addr, dns_duration);
 
         let mut ping_monitor = PingMonitor::new(target_addr, config.graph_history_length);
         ping_monitor.dns_duration = dns_duration;
 
         // Initialize logger if requested
         let log_writer = if let Some(path) = log_file {
+            debug!("Initializing CSV log writer at: {}", path);
             let file = OpenOptions::new().create(true).append(true).open(&path)?;
             let mut writer = BufWriter::new(file);
             // Write header if file is empty
@@ -103,9 +109,11 @@ impl App {
     pub async fn tick(&mut self) -> Result<()> {
         // Ping interval is handled by the background task
         // We just process results here
+        trace!("App tick");
 
         // Process incoming ping results
         while let Ok(result) = self.ping_rx.try_recv() {
+            trace!("Received ping result: {:?}", result);
             // Log result if enabled
             if let Some(writer) = &mut self.log_writer {
                 let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");

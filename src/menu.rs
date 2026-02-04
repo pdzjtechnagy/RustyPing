@@ -297,7 +297,7 @@ impl MenuApp {
                         .fg(Color::White)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::raw(" v2.5.4"),
+                Span::raw(" v2.5.7"),
             ]),
             Line::from("High-performance network monitoring"),
         ];

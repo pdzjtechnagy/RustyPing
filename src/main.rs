@@ -9,6 +9,8 @@ mod ui;
 
 use anyhow::Result;
 use app::App;
+use tracing::{info, debug, trace};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
@@ -19,7 +21,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self};
 
 fn print_help() {
-    println!("RustyPing v2.5.6 - High-performance network monitoring tool");
+    println!("RustyPing v2.5.7 - High-performance network monitoring tool");
     println!();
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
@@ -44,6 +46,14 @@ fn print_help() {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize tracing for comprehensive debugging
+    tracing_subscriber::registry()
+        .with(fmt::layer().with_writer(io::stderr))
+        .with(EnvFilter::from_default_env().add_directive(tracing::Level::DEBUG.into()))
+        .init();
+
+    info!("Starting RustyPing v2.5.7 Debug Session");
+
     // Parse CLI arguments
     let mut target_arg = None;
     let mut monotone = false;
@@ -130,6 +140,7 @@ async fn main() -> Result<()> {
         }
     }
 
+    info!("RustyPing v2.5.7 Debug Session Ended");
     // Restore terminal
     disable_raw_mode()?;
     execute!(
@@ -146,6 +157,7 @@ async fn run_app(
     terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
     app: &mut App,
 ) -> Result<()> {
+    debug!("Entering main app loop");
     loop {
         // Render
         terminal.draw(|f| ui::draw(f, app))?;
@@ -154,6 +166,7 @@ async fn run_app(
         if crossterm::event::poll(std::time::Duration::from_millis(50_u64))? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
+                    trace!("Key pressed: {:?}", key.code);
                     match key.code {
                         // Quit (always works)
                         KeyCode::Char('q') | KeyCode::Char('Q') => {
