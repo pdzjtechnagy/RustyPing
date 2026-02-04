@@ -1,9 +1,9 @@
-# Release Helper Script for RustyPing v2.5.2
+# Release Helper Script for RustyPing v2.5.4
 # Run this script in PowerShell to build and prepare for release.
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "🚀 Starting Release Process for v2.5.2..." -ForegroundColor Cyan
+Write-Host "🚀 Starting Release Process for v2.5.4..." -ForegroundColor Cyan
 
 # 1. Verify Cargo is installed
 if (-not (Get-Command "cargo" -ErrorAction SilentlyContinue)) {
@@ -38,16 +38,16 @@ Write-Host "`n📦 READY TO PUBLISH!" -ForegroundColor Cyan
 Write-Host "Perform the following steps manually to push to GitHub:" -ForegroundColor White
 Write-Host "---------------------------------------------------" -ForegroundColor Gray
 Write-Host "1. git add ." -ForegroundColor Yellow
-Write-Host "2. git commit -m 'chore: release v2.5.2'" -ForegroundColor Yellow
-Write-Host "3. git tag -a v2.5.2 -m 'Release v2.5.2'" -ForegroundColor Yellow
+Write-Host "2. git commit -m 'chore: release v2.5.4'" -ForegroundColor Yellow
+Write-Host "3. git tag -a v2.5.4 -m 'Release v2.5.4'" -ForegroundColor Yellow
 Write-Host "4. git push origin main" -ForegroundColor Yellow
-Write-Host "5. git push origin v2.5.2" -ForegroundColor Yellow
+Write-Host "5. git push origin v2.5.4" -ForegroundColor Yellow
 Write-Host "---------------------------------------------------" -ForegroundColor Gray
 
 Write-Host "🌐 GITHUB RELEASE STEPS:" -ForegroundColor Cyan
 Write-Host "1. Go to: https://github.com/pdzjtechnagy/RustyPing/releases/new" -ForegroundColor White
-Write-Host "2. Select Tag: v2.5.2" -ForegroundColor White
-Write-Host "3. Title: v2.5.2 - CI/CD Reliability Hotfix" -ForegroundColor White
+Write-Host "2. Select Tag: v2.5.4" -ForegroundColor White
+Write-Host "3. Title: v2.5.4 - RPM Packaging Hotfix" -ForegroundColor White
 Write-Host "4. Paste RELEASE_NOTES.md contents into description." -ForegroundColor White
 Write-Host "5. CI/CD will automatically handle asset uploads upon pushing the tag." -ForegroundColor White
 Write-Host "6. Click 'Publish Release' once CI/CD finishes." -ForegroundColor White

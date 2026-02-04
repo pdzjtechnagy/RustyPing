@@ -43,7 +43,7 @@ print_banner() {
     clear
     echo -e "${CYAN}"
     echo "  ╔════════════════════════════════════════════════════════════╗"
-    echo "  ║                RustyPing Linux Utility v2.5.2              ║"
+    echo "  ║                RustyPing Linux Utility v2.5.4              ║"
     echo "  ╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }

@@ -94,7 +94,7 @@ jobs:
           # We need the binary in target/release/ for cargo-generate-rpm
           mkdir -p target/release
           cp target/${{ matrix.target }}/release/rping target/release/
-          cargo generate-rpm --target ${{ matrix.target }}
+          cargo generate-rpm
           cp target/generate-rpm/*.rpm .
         shell: bash
 

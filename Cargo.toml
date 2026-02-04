@@ -1,6 +1,6 @@
 [package]
 name = "rustyping"
-version = "2.5.2"
+version = "2.5.4"
 edition = "2021"
 authors = ["pdzjtechnagy"]
 description = "High-performance, terminal-based network monitoring tool with Braille-resolution graphs"
@@ -51,14 +51,10 @@ assets = [
     ["target/release/rping", "usr/bin/rping", "755"],
 ]
 
-[package.metadata.rpm]
-package = "rustyping"
-
-[package.metadata.rpm.cargo]
-buildflags = ["--release"]
-
-[package.metadata.rpm.targets]
-rping = { path = "/usr/bin/rping" }
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/rping", dest = "/usr/bin/rping", mode = "755" },
+]
 
 [profile.release]
 strip = true

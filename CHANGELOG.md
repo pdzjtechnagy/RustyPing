@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.5.4] - 2026-02-03
+
+### Fixed
+- **RPM Packaging**: Migrated to `[package.metadata.generate-rpm]` and fixed CI build failures.
+- **Workflow**: Updated `cargo-generate-rpm` command in GitHub Actions.
+
 ## [v2.5.2] - 2026-02-03
 
 ### Fixed

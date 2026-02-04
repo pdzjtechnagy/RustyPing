@@ -1,3 +1,18 @@
+# Release Notes - RustyPing v2.5.4
+
+**Release Date:** 2026-02-03
+
+## 🔧 RPM Packaging & Workflow Hotfix
+
+RustyPing v2.5.4 fixes critical RPM generation failures in the Linux CI/CD pipeline.
+
+### ✨ Key Fixes
+*   **RPM Metadata Migration**: Migrated from the deprecated `[package.metadata.rpm]` to the modern `[package.metadata.generate-rpm]` format.
+*   **Workflow Alignment**: Corrected the `cargo-generate-rpm` invocation in GitHub Actions to align with the new metadata structure.
+*   **CI/CD Reliability**: Re-initiated builds for all Linux distributions to ensure complete asset availability.
+
+---
+
 # Release Notes - RustyPing v2.5.2
 
 **Release Date:** 2026-02-03
