@@ -69,6 +69,11 @@ jobs:
           CROSS_NO_WARNINGS: 0
           DOCKER_BUILDKIT: 1
 
+      - name: Security Audit
+        run: |
+          cargo install cargo-audit
+          cargo audit
+
       - name: Prepare Artifact
         run: |
           mkdir -p staging

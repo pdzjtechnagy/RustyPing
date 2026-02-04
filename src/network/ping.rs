@@ -324,7 +324,7 @@ mod tests {
         // Note: this actually performs network IO, so it might flake if offline.
         let (addr, cmd_tx, mut res_rx, dns_duration) = start_ping_task("8.8.8.8", 1000).await.expect("Failed to start ping task");
         
-        println!("Resolved 8.8.8.8 to {}", addr);
+        println!("Resolved 8.8.8.8 to {addr}");
         assert!(dns_duration.is_some(), "DNS duration should be recorded");
 
         // 2. Wait for initial ICMP pings
@@ -332,14 +332,9 @@ mod tests {
         let mut success_count = 0;
         let start = std::time::Instant::now();
         while start.elapsed() < Duration::from_secs(4) {
-             match timeout(Duration::from_millis(500), res_rx.recv()).await {
-                Ok(Some(res)) => {
-                    if let PingResult::Success(_) = res {
-                        success_count += 1;
-                    }
-                }
-                _ => {}
-            }
+             if let Ok(Some(PingResult::Success(_))) = timeout(Duration::from_millis(500), res_rx.recv()).await {
+                 success_count += 1;
+             }
             if success_count >= 1 { break; }
         }
         
@@ -357,18 +352,10 @@ mod tests {
         let start_web = std::time::Instant::now();
 
         while start_web.elapsed() < check_duration {
-            match timeout(Duration::from_millis(1500), res_rx.recv()).await {
-                Ok(Some(res)) => {
-                    match res {
-                        PingResult::WebCheck { port, status: _ } => {
-                            println!("Received Web Check result for port {}", port);
-                            if port == 80 { received_80 = true; }
-                            if port == 443 { received_443 = true; }
-                        },
-                        _ => {} 
-                    }
-                },
-                _ => continue,
+            if let Ok(Some(PingResult::WebCheck { port, status: _ })) = timeout(Duration::from_millis(1500), res_rx.recv()).await {
+                println!("Received Web Check result for port {port}");
+                if port == 80 { received_80 = true; }
+                if port == 443 { received_443 = true; }
             }
 
             if received_80 && received_443 {

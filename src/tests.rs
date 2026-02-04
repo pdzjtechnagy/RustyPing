@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod unit_tests {
     use crate::network::SpeedTestState;
     use crate::theme::Theme;
 
