@@ -282,7 +282,7 @@ impl MenuApp {
             Line::from(vec![
                 Span::styled("Rusty", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
                 Span::styled("Ping", Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-                Span::raw(" v2.5.0"),
+                Span::raw(" v2.5.1"),
             ]),
             Line::from("High-performance network monitoring"),
         ];

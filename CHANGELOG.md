@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.5.1] - 2026-02-03
+
+### Fixed
+- **CI/CD Pipeline**: Fixed Linux build failures by switching to stable `cross` and correcting RPM/DEB packaging logic.
+- **RPM Metadata**: Corrected binary target name in RPM metadata.
+
 ## [v2.5.0] - 2026-02-03
 
 ### Added

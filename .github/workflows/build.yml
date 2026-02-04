@@ -54,12 +54,13 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Install cross
-        run: cargo install cross --git https://github.com/cross-rs/cross.git
+        run: cargo install cross --version 0.2.5
 
       - name: Build with cross
         run: cross build --release --target ${{ matrix.target }}
         env:
           PKG_CONFIG_ALLOW_CROSS: 1
+          CROSS_NO_WARNINGS: 0
 
       - name: Prepare Artifact
         run: |
@@ -73,10 +74,8 @@ jobs:
         if: contains(matrix.target, 'linux-gnu')
         run: |
           cargo install cargo-deb
-          # Use --no-build since we already built with cross
-          # But we need the binary in the expected location for cargo-deb
-          mkdir -p target/${{ matrix.target }}/release
-          cp target/${{ matrix.target }}/release/rping target/${{ matrix.target }}/release/rping
+          # cargo-deb looks for the binary in target/<target>/release/rping
+          # or target/release/rping. We already have it in target/<target>/release/rping
           cargo deb --target ${{ matrix.target }} --no-build
           cp target/${{ matrix.target }}/debian/*.deb .
         shell: bash
@@ -85,7 +84,7 @@ jobs:
         if: contains(matrix.target, 'linux-gnu')
         run: |
           cargo install cargo-generate-rpm
-          # We need the binary in the expected place for rpm generation
+          # We need the binary in target/release/ for cargo-generate-rpm
           mkdir -p target/release
           cp target/${{ matrix.target }}/release/rping target/release/
           cargo generate-rpm --target ${{ matrix.target }}
