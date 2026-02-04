@@ -54,13 +54,20 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Install cross
-        run: cargo install cross --version 0.2.5
+        run: cargo install cross
+
+      - name: Debug Info
+        run: |
+          pwd
+          ls -R
+        shell: bash
 
       - name: Build with cross
         run: cross build --release --target ${{ matrix.target }}
         env:
           PKG_CONFIG_ALLOW_CROSS: 1
           CROSS_NO_WARNINGS: 0
+          DOCKER_BUILDKIT: 1
 
       - name: Prepare Artifact
         run: |

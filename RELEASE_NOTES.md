@@ -1,15 +1,16 @@
-# Release Notes - RustyPing v2.5.1
+# Release Notes - RustyPing v2.5.2
 
 **Release Date:** 2026-02-03
 
-## 🔧 CI/CD Reliability Hotfix
+## 🔧 CI/CD Reliability & Case-Sensitivity Hotfix
 
-RustyPing v2.5.1 addresses critical build failures in the automated Linux pipeline discovered shortly after the v2.5.0 release. This update ensures that native packages (.deb, .rpm) and multi-arch binaries are correctly generated and distributed.
+RustyPing v2.5.2 addresses critical build failures in the automated Linux pipeline.
 
 ### ✨ Key Fixes
+*   **Linux Case-Sensitivity**: Resolved a major build issue where `cargo.toml` was lowercase, causing `cross` to fail on Linux runners.
 *   **Pipeline Stability**: Switched to a stable `cross-rs` version and corrected environment variables for cross-compilation.
-*   **Packaging Logic**: Fixed path errors in the `.deb` and `.rpm` generation steps within GitHub Actions.
-*   **RPM Metadata**: Corrected binary mapping in the RPM manifest to ensure successful installation.
+*   **Packaging Logic**: Fixed path errors in the `.deb` and `.rpm` generation steps.
+*   **RPM Metadata**: Corrected binary mapping in the RPM manifest.
 
 ---
 

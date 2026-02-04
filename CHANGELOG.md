@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.5.1] - 2026-02-03
+## [v2.5.2] - 2026-02-03
 
 ### Fixed
+- **Linux Case-Sensitivity**: Fixed issue where lowercase `cargo.toml` caused `cross` to fail on Linux.
 - **CI/CD Pipeline**: Fixed Linux build failures by switching to stable `cross` and correcting RPM/DEB packaging logic.
 - **RPM Metadata**: Corrected binary target name in RPM metadata.
 
