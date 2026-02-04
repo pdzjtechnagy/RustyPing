@@ -2,12 +2,12 @@ use super::NetworkStats;
 use anyhow::Result;
 use std::collections::VecDeque;
 use std::net::IpAddr;
-use surge_ping::{Client, Config, PingIdentifier, PingSequence};
 use std::time::Duration;
+use surge_ping::{Client, Config, PingIdentifier, PingSequence};
 use tokio::sync::mpsc;
 
-use tokio::net::TcpStream;
 use std::io;
+use tokio::net::TcpStream;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WebCheckStatus {
@@ -72,12 +72,12 @@ impl PingMonitor {
         }
 
         self.max_history = new_size;
-        
+
         // If shrinking, truncate older data
         while self.history.len() > new_size {
             self.history.pop_front();
         }
-        
+
         // If growing, we just let it fill up naturally
     }
 
@@ -91,18 +91,16 @@ impl PingMonitor {
                 if self.recent.len() > 10 {
                     self.recent.pop_front();
                 }
-            },
+            }
             PingResult::Timeout => {
                 self.failed_pings += 1;
                 self.history.push_back(None);
-            },
-            PingResult::WebCheck { port, status } => {
-                match port {
-                    80 => self.tcp_80 = status,
-                    443 => self.tcp_443 = status,
-                    _ => {}
-                }
             }
+            PingResult::WebCheck { port, status } => match port {
+                80 => self.tcp_80 = status,
+                443 => self.tcp_443 = status,
+                _ => {}
+            },
         }
 
         if self.history.len() > self.max_history {
@@ -136,7 +134,7 @@ impl PingMonitor {
         } else {
             valid.iter().fold(f64::INFINITY, |a, &b| a.min(b))
         };
-        
+
         let max_response = if valid.is_empty() {
             0.0_f64
         } else {
@@ -158,7 +156,8 @@ impl PingMonitor {
         // Calculate jitter (standard deviation of latency)
         let jitter = if valid.len() > 1 {
             let mean = avg_response;
-            let variance = valid.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / valid.len() as f64;
+            let variance =
+                valid.iter().map(|&x| (x - mean).powi(2)).sum::<f64>() / valid.len() as f64;
             variance.sqrt()
         } else {
             0.0
@@ -218,14 +217,25 @@ impl PingMonitor {
 }
 
 // Background Task Logic
-pub async fn start_ping_task(target: &str, interval_ms: u64) -> Result<(IpAddr, mpsc::Sender<PingCommand>, mpsc::Receiver<PingResult>, Option<f64>)> {
+pub async fn start_ping_task(
+    target: &str,
+    interval_ms: u64,
+) -> Result<(
+    IpAddr,
+    mpsc::Sender<PingCommand>,
+    mpsc::Receiver<PingResult>,
+    Option<f64>,
+)> {
     let start_dns = std::time::Instant::now();
     let target_addr: IpAddr = if let Ok(addr) = target.parse() {
         addr
     } else {
         use tokio::net::lookup_host;
         let mut addrs = lookup_host(format!("{target}:0")).await?;
-        addrs.next().ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?.ip()
+        addrs
+            .next()
+            .ok_or_else(|| anyhow::anyhow!("Could not resolve hostname"))?
+            .ip()
     };
     let dns_duration = start_dns.elapsed().as_secs_f64() * 1000.0;
 
@@ -241,18 +251,18 @@ pub async fn start_ping_task(target: &str, interval_ms: u64) -> Result<(IpAddr, 
         let mut seq = 0;
         let mut interval = tokio::time::interval(Duration::from_millis(interval_ms));
         let mut web_check_enabled = false;
-        
+
         loop {
             tokio::select! {
                 _ = interval.tick() => {
                      let payload = [0; 8];
-                     
+
                      // Spawn web checks if enabled (fire and forget)
                      if web_check_enabled {
                         let tx80 = res_tx.clone();
                         let tx443 = res_tx.clone();
                         let target = addr;
-                        
+
                         tokio::spawn(async move {
                             let start = std::time::Instant::now();
                             let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream::connect((target, 80))).await {
@@ -302,7 +312,7 @@ pub async fn start_ping_task(target: &str, interval_ms: u64) -> Result<(IpAddr, 
                         Some(PingCommand::SetInterval(ms)) => {
                             interval = tokio::time::interval(Duration::from_millis(ms));
                             // Reset the interval so it ticks from now
-                            interval.tick().await; 
+                            interval.tick().await;
                         }
                     }
                 }
@@ -322,8 +332,10 @@ mod tests {
     async fn test_network_intelligence_flow() {
         // 1. Start the ping task against Google DNS
         // Note: this actually performs network IO, so it might flake if offline.
-        let (addr, cmd_tx, mut res_rx, dns_duration) = start_ping_task("8.8.8.8", 1000).await.expect("Failed to start ping task");
-        
+        let (addr, cmd_tx, mut res_rx, dns_duration) = start_ping_task("8.8.8.8", 1000)
+            .await
+            .expect("Failed to start ping task");
+
         println!("Resolved 8.8.8.8 to {addr}");
         assert!(dns_duration.is_some(), "DNS duration should be recorded");
 
@@ -332,17 +344,24 @@ mod tests {
         let mut success_count = 0;
         let start = std::time::Instant::now();
         while start.elapsed() < Duration::from_secs(4) {
-             if let Ok(Some(PingResult::Success(_))) = timeout(Duration::from_millis(500), res_rx.recv()).await {
-                 success_count += 1;
-             }
-            if success_count >= 1 { break; }
+            if let Ok(Some(PingResult::Success(_))) =
+                timeout(Duration::from_millis(500), res_rx.recv()).await
+            {
+                success_count += 1;
+            }
+            if success_count >= 1 {
+                break;
+            }
         }
-        
+
         // It's possible pings fail due to permissions/network, but we care about the flow here.
         // If we can't ping, we might at least verify the DNS part.
 
         // 3. Enable Web Check
-        cmd_tx.send(PingCommand::ToggleWebCheck(true)).await.expect("Failed to send command");
+        cmd_tx
+            .send(PingCommand::ToggleWebCheck(true))
+            .await
+            .expect("Failed to send command");
 
         // 4. Wait for Web Check results
         let mut received_80 = false;
@@ -352,10 +371,16 @@ mod tests {
         let start_web = std::time::Instant::now();
 
         while start_web.elapsed() < check_duration {
-            if let Ok(Some(PingResult::WebCheck { port, status: _ })) = timeout(Duration::from_millis(1500), res_rx.recv()).await {
+            if let Ok(Some(PingResult::WebCheck { port, status: _ })) =
+                timeout(Duration::from_millis(1500), res_rx.recv()).await
+            {
                 println!("Received Web Check result for port {port}");
-                if port == 80 { received_80 = true; }
-                if port == 443 { received_443 = true; }
+                if port == 80 {
+                    received_80 = true;
+                }
+                if port == 443 {
+                    received_443 = true;
+                }
             }
 
             if received_80 && received_443 {
@@ -367,6 +392,9 @@ mod tests {
         assert!(received_443, "Should have received Port 443 check result");
 
         // 5. Clean shutdown
-        cmd_tx.send(PingCommand::Stop).await.expect("Failed to stop");
+        cmd_tx
+            .send(PingCommand::Stop)
+            .await
+            .expect("Failed to stop");
     }
 }

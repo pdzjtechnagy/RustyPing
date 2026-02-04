@@ -49,14 +49,14 @@ impl TargetHistory {
         let config_dir = dirs::config_dir()
             .ok_or_else(|| anyhow::anyhow!("Could not find config directory"))?
             .join("rustyping");
-        
+
         fs::create_dir_all(&config_dir)?;
         Ok(config_dir.join("history.json"))
     }
 
     pub fn load() -> Result<Self> {
         let path = Self::config_path()?;
-        
+
         if !path.exists() {
             return Ok(Self::default());
         }

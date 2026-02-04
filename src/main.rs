@@ -2,27 +2,24 @@ mod app;
 mod menu;
 mod network;
 mod storage;
-mod theme;
-mod ui;
 #[cfg(test)]
 mod tests;
+mod theme;
+mod ui;
 
-use app::App;
-use menu::MenuApp;
 use anyhow::Result;
+use app::App;
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use ratatui::{
-    backend::CrosstermBackend,
-    Terminal,
-};
+use menu::MenuApp;
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self};
 
 fn print_help() {
-    println!("RustyPing v2.5.5 - High-performance network monitoring tool");
+    println!("RustyPing v2.5.6 - High-performance network monitoring tool");
     println!();
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
@@ -120,14 +117,14 @@ async fn main() -> Result<()> {
 
             // Run app
             run_app(&mut terminal, &mut app).await?;
-            
-             // Save final stats and config
+
+            // Save final stats and config
             let stats = app.ping_monitor.stats();
             let mut history = storage::TargetHistory::load()?;
-            
+
             // Update config with any changes made during session
             history.config = app.config;
-            
+
             history.update_stats(&app.target, stats.avg_response, stats.uptime_pct);
             history.save()?;
         }
@@ -145,7 +142,10 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mut App) -> Result<()> {
+async fn run_app(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    app: &mut App,
+) -> Result<()> {
     loop {
         // Render
         terminal.draw(|f| ui::draw(f, app))?;
@@ -180,39 +180,57 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                         }
                         // Speed test
                         KeyCode::Char('s') | KeyCode::Char('S') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.start_speedtest().await?;
                             }
                         }
                         // Port scan
                         KeyCode::Char('p') | KeyCode::Char('P') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.start_portscan().await?;
                             }
                         }
                         // Other shortcuts (only when not in overlays)
                         KeyCode::Char('j') | KeyCode::Char('J') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.toggle_jitter_panel();
                             }
                         }
                         KeyCode::Char('h') | KeyCode::Char('H') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.toggle_history_panel();
                             }
                         }
                         KeyCode::Char('r') | KeyCode::Char('R') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.reset_stats();
                             }
                         }
                         // Web Check
                         KeyCode::Char('w') | KeyCode::Char('W') => {
-                            if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
                                 app.toggle_web_check().await;
                             }
                         }
-                        
+
                         // Dynamic Controls (Arrow Keys)
                         KeyCode::Right => {
                             if !app.show_settings {
@@ -242,9 +260,12 @@ async fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, app: &mu
                             app.settings_toggle_selected();
                         }
                         KeyCode::Enter => {
-                             if !app.show_settings && app.speedtest.is_none() && app.portscan.is_none() {
-                                 app.toggle_diagnostics();
-                             }
+                            if !app.show_settings
+                                && app.speedtest.is_none()
+                                && app.portscan.is_none()
+                            {
+                                app.toggle_diagnostics();
+                            }
                         }
                         KeyCode::Char(c) if app.show_settings && c.is_ascii_digit() => {
                             if let Some(n) = c.to_digit(10) {

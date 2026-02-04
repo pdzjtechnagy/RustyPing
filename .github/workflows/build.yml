@@ -10,8 +10,34 @@ permissions:
   contents: write
 
 jobs:
+  lint-and-audit:
+    name: Lint and Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rustfmt Check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy Lints
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Security Audit
+        uses: actions-rust-lang/audit@v1
+        with:
+          # Ignore RUSTSEC-2026-0002 (lru) as it's transitive and currently unfixable
+          # Ignore RUSTSEC-2025-0134 (rustls-pemfile) if it still persists
+          ignore: RUSTSEC-2026-0002, RUSTSEC-2025-0134
+
   build-linux:
     name: Build Linux (${{ matrix.target }})
+    needs: lint-and-audit
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -69,11 +95,6 @@ jobs:
           CROSS_NO_WARNINGS: 0
           DOCKER_BUILDKIT: 1
 
-      - name: Security Audit
-        run: |
-          cargo install cargo-audit
-          cargo audit
-
       - name: Prepare Artifact
         run: |
           mkdir -p staging
@@ -114,6 +135,7 @@ jobs:
 
   build-windows:
     name: Build Windows (${{ matrix.target }})
+    needs: lint-and-audit
     runs-on: windows-latest
     strategy:
       fail-fast: false

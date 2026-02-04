@@ -15,7 +15,7 @@ use ratatui::{
 
 pub fn draw(f: &mut Frame, app: &mut App) {
     let area = f.area();
-    
+
     // ULTRA-COMPACT MODE (Tiny boxes, e.g., 20x5)
     // If very small, show ONLY the graph.
     if area.height < 12 || area.width < 50 {
@@ -30,31 +30,31 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     // Calculate dynamic constraints based on terminal size
     let header_height = 3;
     let footer_height = 1;
-    
+
     // Check if we need to show panels
     let has_speedtest = app.speedtest.is_some();
     let has_portscan = app.portscan.is_some();
     let has_panels = has_speedtest || has_portscan;
-    
+
     // Adjust layout based on panels and available height
     let stats_height = if area.height >= 35 {
         13 // Full stats panel
     } else if area.height >= 28 {
         10 // Reduced stats
     } else {
-        8  // Minimal stats
+        8 // Minimal stats
     };
-    
+
     let panel_height = if has_panels {
         if has_speedtest && has_portscan {
             12 // Both panels
         } else {
-            8  // Single panel
+            8 // Single panel
         }
     } else {
         0
     };
-    
+
     // Calculate available graph height
     let used_height = header_height + stats_height + footer_height + panel_height;
     let graph_height = area.height.saturating_sub(used_height);
@@ -83,9 +83,13 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         .split(area);
 
     // Safe access to chunks (in case layout fails or is different)
-    if let Some(chunk) = chunks.first() { draw_header(f, app, *chunk); }
-    if let Some(chunk) = chunks.get(1) { draw_latency_graph(f, app, *chunk); }
-    
+    if let Some(chunk) = chunks.first() {
+        draw_header(f, app, *chunk);
+    }
+    if let Some(chunk) = chunks.get(1) {
+        draw_latency_graph(f, app, *chunk);
+    }
+
     // Logic to handle variable chunk indices based on panels
     let stats_idx = 2;
     let panel_idx = if has_panels { 3 } else { 999 }; // 999 = invalid
@@ -144,16 +148,32 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
 
     // Enhanced header with more information
     let ip_display = app.ping_monitor.get_target_addr().to_string();
-    
+
     let text = vec![Line::from(vec![
-        Span::styled(" RustyPing ", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            " RustyPing ",
+            Style::default()
+                .fg(app.theme.title)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw("│"),
-        Span::styled(format!(" {ip_display} "), Style::default().fg(app.theme.low)),
+        Span::styled(
+            format!(" {ip_display} "),
+            Style::default().fg(app.theme.low),
+        ),
         Span::raw("│"),
-        Span::styled(format!(" Target: {} ", &app.target), Style::default().fg(app.theme.hi_fg)),
+        Span::styled(
+            format!(" Target: {} ", &app.target),
+            Style::default().fg(app.theme.hi_fg),
+        ),
         Span::raw("│"),
         Span::styled(" ● ", Style::default().fg(status_color)),
-        Span::styled(quality, Style::default().fg(status_color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            quality,
+            Style::default()
+                .fg(status_color)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::raw(" │"),
         Span::styled(
             format!(" Packets: {} ", stats.total_pings),
@@ -165,7 +185,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(app.theme.box_color))
+                .border_style(Style::default().fg(app.theme.box_color)),
         )
         .style(Style::default().bg(app.theme.bg).fg(app.theme.fg));
 
@@ -174,17 +194,15 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
     let data = app.ping_monitor.latency_data();
-    
+
     // Enhanced empty state
     if data.is_empty() {
         let empty_text = vec![
             Line::from(""),
-            Line::from(vec![
-                Span::styled(
-                    "  Waiting for ping data...",
-                    Style::default().fg(app.theme.low),
-                ),
-            ]),
+            Line::from(vec![Span::styled(
+                "  Waiting for ping data...",
+                Style::default().fg(app.theme.low),
+            )]),
         ];
         let paragraph = Paragraph::new(empty_text)
             .block(
@@ -201,15 +219,18 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
 
     // Calculate bounds based on successful pings
     let valid_pings: Vec<f64> = data.iter().filter_map(|&v| v).collect();
-    
+
     let (min_latency, max_latency) = if valid_pings.is_empty() {
         (0.0, 100.0) // Default range if all pings failed
     } else {
-        let min = valid_pings.iter().fold(f64::INFINITY, |a, b| a.min(*b)).min(0.0);
+        let min = valid_pings
+            .iter()
+            .fold(f64::INFINITY, |a, b| a.min(*b))
+            .min(0.0);
         let max = valid_pings.iter().fold(0.0_f64, |a, b| a.max(*b)).max(50.0);
         (min, max)
     };
-    
+
     // Add 10% padding on top and bottom for better visibility
     let y_padding: f64 = (max_latency - min_latency).max(10.0) * 0.1;
     let y_min: f64 = (min_latency - y_padding).max(0.0);
@@ -224,7 +245,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
 
     // BRAILLE CANVAS - High-resolution rendering!
     // Right-to-Left Scrolling: Newest data is on the RIGHT side.
-    
+
     // Calculate the actual available width in braille dots.
     // Each character cell contains 2 braille dot columns.
     // We subtract 2 from width for borders (left/right).
@@ -235,7 +256,11 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .title(title_text)
-                .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                .title_style(
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(app.theme.box_color)),
         )
@@ -248,7 +273,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
             // Right-Side Justification Logic
             // We align the newest data point to the absolute rightmost available dot column.
             // Coordinate System: 0.0 (Left) -> canvas_width_dots (Right)
-            
+
             let data_len = data.len();
             let right_edge = canvas_width_dots - 1.0; // The last visible column index
 
@@ -257,10 +282,10 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 // The data is pushed to back, so the last element is the newest.
                 // data[i] where i = data_len - 1 is the newest.
                 let age = data_len - 1 - i;
-                
+
                 // Map to screen coordinate
                 let x_pos = right_edge - (age as f64);
-                
+
                 // Optimization: Skip points that are off the left side of the screen
                 if x_pos < 0.0 {
                     continue;
@@ -270,13 +295,17 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
                 let x_final = x_pos.floor();
 
                 if let Some(y) = val_opt {
-                    let ratio = if y_max > 0.0 { (*y / y_max).min(1.0) } else { 0.0 };
+                    let ratio = if y_max > 0.0 {
+                        (*y / y_max).min(1.0)
+                    } else {
+                        0.0
+                    };
                     let color = app.theme.graph_gradient(ratio);
-                    
+
                     // Draw a vertical line from bottom to value
                     // Using the same X for x1 and x2 ensures a 1-dot wide vertical line.
                     ctx.draw(&CanvasLine {
-                        x1: x_final, 
+                        x1: x_final,
                         y1: y_min,
                         x2: x_final,
                         y2: *y,
@@ -301,7 +330,7 @@ fn draw_latency_graph(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
     let stats = app.ping_monitor.stats();
-    
+
     let current_color = if let Some(rt) = stats.current_response {
         app.theme.latency_color(rt)
     } else {
@@ -314,7 +343,9 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
             Span::styled("Current:   ", Style::default().fg(app.theme.low)),
             Span::styled(
                 format!("{:>8.1} ms", stats.current_response.unwrap_or(0.0)),
-                Style::default().fg(current_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(current_color)
+                    .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(vec![
@@ -325,33 +356,54 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
             ),
         ]),
         Line::from(""),
-        Line::from(vec![
-            Span::styled("Session Statistics:", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD)),
-        ]),
+        Line::from(vec![Span::styled(
+            "Session Statistics:",
+            Style::default()
+                .fg(app.theme.title)
+                .add_modifier(Modifier::BOLD),
+        )]),
         Line::from(vec![
             Span::styled("  Avg:    ", Style::default().fg(app.theme.low)),
-            Span::styled(format!("{:>8.1} ms", stats.avg_response), Style::default().fg(app.theme.fg)),
+            Span::styled(
+                format!("{:>8.1} ms", stats.avg_response),
+                Style::default().fg(app.theme.fg),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Min:    ", Style::default().fg(app.theme.low)),
-            Span::styled(format!("{:>8.1} ms", stats.min_response), Style::default().fg(app.theme.good)),
+            Span::styled(
+                format!("{:>8.1} ms", stats.min_response),
+                Style::default().fg(app.theme.good),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Max:    ", Style::default().fg(app.theme.low)),
-            Span::styled(format!("{:>8.1} ms", stats.max_response), Style::default().fg(app.theme.warn)),
+            Span::styled(
+                format!("{:>8.1} ms", stats.max_response),
+                Style::default().fg(app.theme.warn),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Jitter: ", Style::default().fg(app.theme.low)),
-            Span::styled(format!("{:>8.1} ms", stats.jitter), Style::default().fg(app.theme.fg)),
+            Span::styled(
+                format!("{:>8.1} ms", stats.jitter),
+                Style::default().fg(app.theme.fg),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("Uptime:    ", Style::default().fg(app.theme.good)),
-            Span::styled(format!("{:>6.1}%", stats.uptime_pct), Style::default().fg(app.theme.fg)),
+            Span::styled(
+                format!("{:>6.1}%", stats.uptime_pct),
+                Style::default().fg(app.theme.fg),
+            ),
         ]),
         Line::from(vec![
             Span::styled("Loss:      ", Style::default().fg(app.theme.crit)),
-            Span::styled(format!("{:>6.1}%", stats.packet_loss_pct), Style::default().fg(app.theme.fg)),
+            Span::styled(
+                format!("{:>6.1}%", stats.packet_loss_pct),
+                Style::default().fg(app.theme.fg),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
@@ -362,38 +414,51 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
                 } else {
                     "     N/A".to_string()
                 },
-                Style::default().fg(app.theme.fg)
+                Style::default().fg(app.theme.fg),
             ),
         ]),
         Line::from(vec![
-             Span::styled("Web Check: ", Style::default().fg(app.theme.low)),
-             if app.enable_web_check {
-                 Span::styled("ON", Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD))
-             } else {
-                 Span::styled("OFF", Style::default().fg(app.theme.low))
-             },
+            Span::styled("Web Check: ", Style::default().fg(app.theme.low)),
+            if app.enable_web_check {
+                Span::styled(
+                    "ON",
+                    Style::default()
+                        .fg(app.theme.good)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled("OFF", Style::default().fg(app.theme.low))
+            },
         ]),
         if app.enable_web_check {
-             Line::from(vec![
-                 Span::styled("  HTTP(80): ", Style::default().fg(app.theme.low)),
-                 match stats.tcp_port_80 {
-                     WebCheckStatus::Success(t) => Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg)),
-                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
-                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
-                 }
-             ])
+            Line::from(vec![
+                Span::styled("  HTTP(80): ", Style::default().fg(app.theme.low)),
+                match stats.tcp_port_80 {
+                    WebCheckStatus::Success(t) => {
+                        Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg))
+                    }
+                    WebCheckStatus::Untested => {
+                        Span::styled("     ...", Style::default().fg(app.theme.low))
+                    }
+                    _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
+                },
+            ])
         } else {
             Line::from("")
         },
         if app.enable_web_check {
-             Line::from(vec![
-                 Span::styled("  SSL(443): ", Style::default().fg(app.theme.low)),
-                 match stats.tcp_port_443 {
-                     WebCheckStatus::Success(t) => Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg)),
-                     WebCheckStatus::Untested => Span::styled("     ...", Style::default().fg(app.theme.low)),
-                     _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
-                 }
-             ])
+            Line::from(vec![
+                Span::styled("  SSL(443): ", Style::default().fg(app.theme.low)),
+                match stats.tcp_port_443 {
+                    WebCheckStatus::Success(t) => {
+                        Span::styled(format!("{t:>6.1} ms"), Style::default().fg(app.theme.fg))
+                    }
+                    WebCheckStatus::Untested => {
+                        Span::styled("     ...", Style::default().fg(app.theme.low))
+                    }
+                    _ => Span::styled("     ---", Style::default().fg(app.theme.crit)),
+                },
+            ])
         } else {
             Line::from("")
         },
@@ -406,7 +471,11 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .title(" STATISTICS ")
-                .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                .title_style(
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(app.theme.box_color)),
         )
@@ -417,7 +486,7 @@ fn draw_statistics(f: &mut Frame, app: &App, area: Rect) {
 
 fn draw_jitter_panel(f: &mut Frame, app: &App, area: Rect) {
     let stats = app.ping_monitor.stats();
-    
+
     // Calculate gauge color based on stability
     let gauge_color = if stats.stability >= 90.0 {
         app.theme.good
@@ -440,7 +509,9 @@ fn draw_jitter_panel(f: &mut Frame, app: &App, area: Rect) {
             Span::styled("Stability:    ", Style::default().fg(app.theme.low)),
             Span::styled(
                 format!("{:>6.0}%", stats.stability),
-                Style::default().fg(gauge_color).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(gauge_color)
+                    .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(""),
@@ -452,7 +523,11 @@ fn draw_jitter_panel(f: &mut Frame, app: &App, area: Rect) {
         .block(
             Block::default()
                 .title(" QUALITY & ACTIONS ")
-                .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                .title_style(
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(app.theme.box_color)),
         )
@@ -475,50 +550,77 @@ fn draw_jitter_panel(f: &mut Frame, app: &App, area: Rect) {
         .label(format!("{:.0}%", stats.stability));
 
     f.render_widget(gauge, gauge_area);
-
 }
 
 fn draw_footer(f: &mut Frame, app: &App, area: Rect) {
     let runtime = app.runtime();
     let stats = app.ping_monitor.stats();
-    
+
     // Enhanced footer with highlighted keys (btop-style)
     let mut spans = vec![
-        Span::styled("[Q]", Style::default().fg(app.theme.key_highlight).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[Q]",
+            Style::default()
+                .fg(app.theme.key_highlight)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("uit", Style::default().fg(app.theme.low)),
         Span::raw(" │ "),
-        Span::styled("[ESC]", Style::default().fg(app.theme.key_highlight).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "[ESC]",
+            Style::default()
+                .fg(app.theme.key_highlight)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("ettings", Style::default().fg(app.theme.low)),
     ];
-    
+
     // Only show S/P if panels aren't open
     if app.speedtest.is_none() && app.portscan.is_none() {
         spans.extend(vec![
             Span::raw(" │ "),
-            Span::styled("[S]", Style::default().fg(app.theme.key_highlight).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[S]",
+                Style::default()
+                    .fg(app.theme.key_highlight)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("peed", Style::default().fg(app.theme.low)),
             Span::raw(" │ "),
-            Span::styled("[P]", Style::default().fg(app.theme.key_highlight).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[P]",
+                Style::default()
+                    .fg(app.theme.key_highlight)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("ort", Style::default().fg(app.theme.low)),
         ]);
     } else {
         spans.extend(vec![
             Span::raw(" │ "),
-            Span::styled("[C]", Style::default().fg(app.theme.key_highlight).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "[C]",
+                Style::default()
+                    .fg(app.theme.key_highlight)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled("lose", Style::default().fg(app.theme.low)),
         ]);
     }
-    
+
     spans.extend(vec![
         Span::raw(" │ "),
         Span::styled("Runtime: ", Style::default().fg(app.theme.low)),
         Span::styled(
-            format!("{:02}:{:02}:{:02}", 
+            format!(
+                "{:02}:{:02}:{:02}",
                 runtime.as_secs() / 3600,
                 (runtime.as_secs() % 3600) / 60,
                 runtime.as_secs() % 60
             ),
-            Style::default().fg(app.theme.fg).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(app.theme.fg)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" │ "),
         Span::styled("Pkts: ", Style::default().fg(app.theme.low)),
@@ -542,80 +644,122 @@ fn draw_footer(f: &mut Frame, app: &App, area: Rect) {
     ]);
 
     let text = Line::from(spans);
-    let paragraph = Paragraph::new(text)
-        .style(Style::default().bg(app.theme.bg).fg(app.theme.fg));
+    let paragraph = Paragraph::new(text).style(Style::default().bg(app.theme.bg).fg(app.theme.fg));
     f.render_widget(paragraph, area);
 }
 
 fn draw_settings_overlay(f: &mut Frame, app: &App) {
     let area = centered_rect(45, 40, f.area());
-    
+
     // Enhanced settings overlay with better styling
     let text = vec![
         Line::from(""),
         Line::from(vec![
             Span::styled(
-                if app.settings_selected == 0 { " ▶ " } else { "   " },
+                if app.settings_selected == 0 {
+                    " ▶ "
+                } else {
+                    "   "
+                },
                 Style::default().fg(app.theme.title),
             ),
             Span::styled(
                 if app.show_jitter { "☑" } else { "☐" },
-                Style::default().fg(if app.show_jitter { app.theme.good } else { app.theme.low }),
+                Style::default().fg(if app.show_jitter {
+                    app.theme.good
+                } else {
+                    app.theme.low
+                }),
             ),
             Span::raw(" "),
             Span::styled(
                 "Show Jitter Panel",
-                Style::default()
-                    .fg(if app.settings_selected == 0 { app.theme.hi_fg } else { app.theme.fg }),
+                Style::default().fg(if app.settings_selected == 0 {
+                    app.theme.hi_fg
+                } else {
+                    app.theme.fg
+                }),
             ),
         ]),
         Line::from(vec![
             Span::styled(
-                if app.settings_selected == 1 { " ▶ " } else { "   " },
+                if app.settings_selected == 1 {
+                    " ▶ "
+                } else {
+                    "   "
+                },
                 Style::default().fg(app.theme.title),
             ),
             Span::styled(
                 if app.show_history { "☑" } else { "☐" },
-                Style::default().fg(if app.show_history { app.theme.good } else { app.theme.low }),
+                Style::default().fg(if app.show_history {
+                    app.theme.good
+                } else {
+                    app.theme.low
+                }),
             ),
             Span::raw(" "),
             Span::styled(
                 "Show History Panel",
-                Style::default()
-                    .fg(if app.settings_selected == 1 { app.theme.hi_fg } else { app.theme.fg }),
+                Style::default().fg(if app.settings_selected == 1 {
+                    app.theme.hi_fg
+                } else {
+                    app.theme.fg
+                }),
             ),
         ]),
         Line::from(vec![
             Span::styled(
-                if app.settings_selected == 2 { " ▶ " } else { "   " },
+                if app.settings_selected == 2 {
+                    " ▶ "
+                } else {
+                    "   "
+                },
                 Style::default().fg(app.theme.title),
             ),
             Span::styled(
-                if app.config.pause_ping_during_speedtest { "☑" } else { "☐" },
-                Style::default().fg(if app.config.pause_ping_during_speedtest { app.theme.good } else { app.theme.low }),
+                if app.config.pause_ping_during_speedtest {
+                    "☑"
+                } else {
+                    "☐"
+                },
+                Style::default().fg(if app.config.pause_ping_during_speedtest {
+                    app.theme.good
+                } else {
+                    app.theme.low
+                }),
             ),
             Span::raw(" "),
             Span::styled(
                 "Pause ping during speedtest",
-                Style::default()
-                    .fg(if app.settings_selected == 2 { app.theme.hi_fg } else { app.theme.fg }),
+                Style::default().fg(if app.settings_selected == 2 {
+                    app.theme.hi_fg
+                } else {
+                    app.theme.fg
+                }),
             ),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled(
                 " ↑/↓ ",
-                Style::default().fg(app.theme.hi_fg).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(app.theme.hi_fg)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled("Navigate  ", Style::default().fg(app.theme.low)),
             Span::styled(
                 " Enter ",
-                Style::default().fg(app.theme.hi_fg).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(app.theme.hi_fg)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled("Toggle  ", Style::default().fg(app.theme.low)),
             Span::styled(
                 " ESC ",
-                Style::default().fg(app.theme.hi_fg).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(app.theme.hi_fg)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled("Close", Style::default().fg(app.theme.low)),
         ]),
@@ -625,7 +769,11 @@ fn draw_settings_overlay(f: &mut Frame, app: &App) {
         .block(
             Block::default()
                 .title(" SETTINGS ")
-                .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                .title_style(
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(app.theme.title)),
         )
@@ -639,7 +787,9 @@ fn highlighted_key<'a>(theme: &Theme, key: &'a str, label: &'a str) -> Vec<Span<
     vec![
         Span::styled(
             format!("[{key}]"),
-            Style::default().fg(theme.key_highlight).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.key_highlight)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::raw(" "),
         Span::styled(label, Style::default().fg(theme.low)),
@@ -649,60 +799,96 @@ fn highlighted_key<'a>(theme: &Theme, key: &'a str, label: &'a str) -> Vec<Span<
 fn draw_speedtest_panel(f: &mut Frame, app: &App, area: Rect) {
     if let Some(ref st) = app.speedtest {
         let mut lines = vec![Line::from("")];
-        
+
         match st.get_state() {
             SpeedTestState::Preparing => {
-                lines.push(Line::from(vec![
-                    Span::styled("Preparing speed test...", Style::default().fg(app.theme.title)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Preparing speed test...",
+                    Style::default().fg(app.theme.title),
+                )]));
             }
             SpeedTestState::Downloading { bytes_received, .. } => {
-                lines.push(Line::from(vec![
-                    Span::styled("Download Speed Test", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Download Speed Test",
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 lines.push(Line::from(""));
-                lines.push(Line::from(vec![
-                    Span::styled("Downloading...", Style::default().fg(app.theme.title)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Downloading...",
+                    Style::default().fg(app.theme.title),
+                )]));
                 lines.push(Line::from(vec![
                     Span::styled("Bytes: ", Style::default().fg(app.theme.low)),
-                    Span::styled(format!("{:.2} MB", *bytes_received as f64 / 1_000_000.0), Style::default().fg(app.theme.fg)),
+                    Span::styled(
+                        format!("{:.2} MB", *bytes_received as f64 / 1_000_000.0),
+                        Style::default().fg(app.theme.fg),
+                    ),
                 ]));
             }
-            SpeedTestState::Uploading { bytes_sent, download_results, .. } => {
-                lines.push(Line::from(vec![
-                    Span::styled("Upload Speed Test", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD)),
-                ]));
+            SpeedTestState::Uploading {
+                bytes_sent,
+                download_results,
+                ..
+            } => {
+                lines.push(Line::from(vec![Span::styled(
+                    "Upload Speed Test",
+                    Style::default()
+                        .fg(app.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 lines.push(Line::from(""));
-                lines.push(Line::from(vec![
-                    Span::styled("Uploading...", Style::default().fg(app.theme.title)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Uploading...",
+                    Style::default().fg(app.theme.title),
+                )]));
                 lines.push(Line::from(vec![
                     Span::styled("Download: ", Style::default().fg(app.theme.low)),
-                    Span::styled(format!("{:.2} Mbps", download_results.0), Style::default().fg(app.theme.good)),
+                    Span::styled(
+                        format!("{:.2} Mbps", download_results.0),
+                        Style::default().fg(app.theme.good),
+                    ),
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Bytes: ", Style::default().fg(app.theme.low)),
-                    Span::styled(format!("{:.2} MB", *bytes_sent as f64 / 1_000_000.0), Style::default().fg(app.theme.fg)),
+                    Span::styled(
+                        format!("{:.2} MB", *bytes_sent as f64 / 1_000_000.0),
+                        Style::default().fg(app.theme.fg),
+                    ),
                 ]));
             }
-            SpeedTestState::Complete { download_mbps, upload_mbps, total_bytes, duration, avg_speed, peak_speed } => {
-                lines.push(Line::from(vec![
-                    Span::styled("Speed Test Complete", Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD)),
-                ]));
+            SpeedTestState::Complete {
+                download_mbps,
+                upload_mbps,
+                total_bytes,
+                duration,
+                avg_speed,
+                peak_speed,
+            } => {
+                lines.push(Line::from(vec![Span::styled(
+                    "Speed Test Complete",
+                    Style::default()
+                        .fg(app.theme.good)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(vec![
                     Span::styled("Download: ", Style::default().fg(app.theme.low)),
                     Span::styled(
                         format!("{download_mbps:.2} Mbps"),
-                        Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(app.theme.good)
+                            .add_modifier(Modifier::BOLD),
                     ),
                 ]));
                 lines.push(Line::from(vec![
                     Span::styled("Upload:   ", Style::default().fg(app.theme.low)),
                     Span::styled(
                         format!("{upload_mbps:.2} Mbps"),
-                        Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(app.theme.good)
+                            .add_modifier(Modifier::BOLD),
                     ),
                 ]));
                 lines.push(Line::from(vec![
@@ -735,9 +921,12 @@ fn draw_speedtest_panel(f: &mut Frame, app: &App, area: Rect) {
                 ]));
             }
             SpeedTestState::Error(msg) => {
-                lines.push(Line::from(vec![
-                    Span::styled("Speed Test Error", Style::default().fg(app.theme.crit).add_modifier(Modifier::BOLD)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Speed Test Error",
+                    Style::default()
+                        .fg(app.theme.crit)
+                        .add_modifier(Modifier::BOLD),
+                )]));
                 lines.push(Line::from(""));
                 lines.push(Line::from(vec![
                     Span::styled("Error: ", Style::default().fg(app.theme.crit)),
@@ -745,20 +934,24 @@ fn draw_speedtest_panel(f: &mut Frame, app: &App, area: Rect) {
                 ]));
             }
         }
-        
+
         lines.push(Line::from(""));
         lines.push(Line::from(highlighted_key(&app.theme, "C", "Close")));
-        
+
         let paragraph = Paragraph::new(lines)
             .block(
                 Block::default()
                     .title(" SPEED TEST ")
-                    .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                    .title_style(
+                        Style::default()
+                            .fg(app.theme.title)
+                            .add_modifier(Modifier::BOLD),
+                    )
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(app.theme.box_color)),
             )
             .style(Style::default().bg(app.theme.bg).fg(app.theme.fg));
-        
+
         f.render_widget(paragraph, area);
     }
 }
@@ -773,39 +966,42 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
         };
 
         let mut lines = vec![
-            Line::from(vec![
-                Span::styled(
-                    format!("Scanning: {}", app.target),
-                    Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD),
-                ),
-            ]),
-            Line::from(vec![
-                Span::styled(
-                    format!("Progress: {current}/{total} ({progress_pct:.0}%)"),
-                    Style::default().fg(app.theme.low),
-                ),
-            ]),
+            Line::from(vec![Span::styled(
+                format!("Scanning: {}", app.target),
+                Style::default()
+                    .fg(app.theme.title)
+                    .add_modifier(Modifier::BOLD),
+            )]),
+            Line::from(vec![Span::styled(
+                format!("Progress: {current}/{total} ({progress_pct:.0}%)"),
+                Style::default().fg(app.theme.low),
+            )]),
             Line::from(""),
         ];
 
         // Show results
         let results = ps.results();
-        let open_ports: Vec<&PortResult> = results.iter().filter(|r| r.status == PortStatus::Open).collect();
-        let filtered_ports: Vec<&PortResult> = results.iter().filter(|r| r.status == PortStatus::Filtered).collect();
-        
+        let open_ports: Vec<&PortResult> = results
+            .iter()
+            .filter(|r| r.status == PortStatus::Open)
+            .collect();
+        let filtered_ports: Vec<&PortResult> = results
+            .iter()
+            .filter(|r| r.status == PortStatus::Filtered)
+            .collect();
+
         if !results.is_empty() {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    format!("Open: {}  Filtered: {}  Closed: {}", 
-                        open_ports.len(), 
-                        filtered_ports.len(),
-                        results.len() - open_ports.len() - filtered_ports.len()
-                    ),
-                    Style::default().fg(app.theme.fg),
+            lines.push(Line::from(vec![Span::styled(
+                format!(
+                    "Open: {}  Filtered: {}  Closed: {}",
+                    open_ports.len(),
+                    filtered_ports.len(),
+                    results.len() - open_ports.len() - filtered_ports.len()
                 ),
-            ]));
+                Style::default().fg(app.theme.fg),
+            )]));
             lines.push(Line::from(""));
-            
+
             // Show open ports first
             if !open_ports.is_empty() {
                 for result in open_ports.iter().take(5) {
@@ -821,26 +1017,27 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
                         ),
                         Span::styled(
                             "OPEN",
-                            Style::default().fg(app.theme.good).add_modifier(Modifier::BOLD),
+                            Style::default()
+                                .fg(app.theme.good)
+                                .add_modifier(Modifier::BOLD),
                         ),
                         Span::styled(service_text, Style::default().fg(app.theme.low)),
                     ]));
                 }
                 if open_ports.len() > 5 {
-                    lines.push(Line::from(vec![
-                        Span::styled(
-                            format!("  ... {} more open", open_ports.len() - 5),
-                            Style::default().fg(app.theme.low),
-                        ),
-                    ]));
+                    lines.push(Line::from(vec![Span::styled(
+                        format!("  ... {} more open", open_ports.len() - 5),
+                        Style::default().fg(app.theme.low),
+                    )]));
                 }
             } else if ps.is_complete() {
-                lines.push(Line::from(vec![
-                    Span::styled("No open ports found", Style::default().fg(app.theme.low)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "No open ports found",
+                    Style::default().fg(app.theme.low),
+                )]));
             }
         }
-        
+
         lines.push(Line::from(""));
         lines.push(Line::from(highlighted_key(&app.theme, "C", "Close")));
 
@@ -848,7 +1045,11 @@ fn draw_portscan_panel(f: &mut Frame, app: &App, area: Rect) {
             .block(
                 Block::default()
                     .title(" PORT SCAN ")
-                    .title_style(Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))
+                    .title_style(
+                        Style::default()
+                            .fg(app.theme.title)
+                            .add_modifier(Modifier::BOLD),
+                    )
                     .borders(Borders::ALL)
                     .border_style(Style::default().fg(app.theme.box_color)),
             )
@@ -871,7 +1072,7 @@ fn format_web_check(status: &WebCheckStatus) -> String {
 fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
     let area = centered_rect(60, 50, f.area());
     let stats = app.ping_monitor.stats();
-    
+
     let dns_status = if let Some(ms) = stats.dns_duration {
         format!("{ms:.2} ms")
     } else {
@@ -880,13 +1081,13 @@ fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
 
     let http_status = format_web_check(&stats.tcp_port_80);
     let https_status = format_web_check(&stats.tcp_port_443);
-    
+
     let http_color = match stats.tcp_port_80 {
         WebCheckStatus::Success(_) => app.theme.good,
         WebCheckStatus::Untested => app.theme.low,
         _ => app.theme.missed,
     };
-    
+
     let https_color = match stats.tcp_port_443 {
         WebCheckStatus::Success(_) => app.theme.good,
         WebCheckStatus::Untested => app.theme.low,
@@ -895,14 +1096,22 @@ fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
 
     let text = vec![
         Line::from(""),
-        Line::from(Span::styled("Network Intelligence", Style::default().fg(app.theme.title).add_modifier(Modifier::BOLD))),
+        Line::from(Span::styled(
+            "Network Intelligence",
+            Style::default()
+                .fg(app.theme.title)
+                .add_modifier(Modifier::BOLD),
+        )),
         Line::from(""),
         Line::from(vec![
             Span::raw("DNS Resolution: "),
             Span::styled(dns_status, Style::default().fg(app.theme.hi_fg)),
         ]),
         Line::from(""),
-        Line::from(Span::styled("Connectivity Checks", Style::default().fg(app.theme.title))),
+        Line::from(Span::styled(
+            "Connectivity Checks",
+            Style::default().fg(app.theme.title),
+        )),
         Line::from(vec![
             Span::raw("HTTP (Port 80): "),
             Span::styled(http_status, Style::default().fg(http_color)),
@@ -912,24 +1121,40 @@ fn draw_diagnostics_overlay(f: &mut Frame, app: &App) {
             Span::styled(https_status, Style::default().fg(https_color)),
         ]),
         Line::from(""),
-        Line::from(Span::styled("ICMP Statistics", Style::default().fg(app.theme.title))),
+        Line::from(Span::styled(
+            "ICMP Statistics",
+            Style::default().fg(app.theme.title),
+        )),
         Line::from(vec![
             Span::raw("Total Pings: "),
-            Span::styled(format!("{}", stats.total_pings), Style::default().fg(app.theme.fg)),
+            Span::styled(
+                format!("{}", stats.total_pings),
+                Style::default().fg(app.theme.fg),
+            ),
         ]),
         Line::from(vec![
             Span::raw("Packet Loss: "),
-            Span::styled(format!("{:.1}%", stats.packet_loss_pct), Style::default().fg(if stats.packet_loss_pct > 0.0 { app.theme.missed } else { app.theme.good })),
+            Span::styled(
+                format!("{:.1}%", stats.packet_loss_pct),
+                Style::default().fg(if stats.packet_loss_pct > 0.0 {
+                    app.theme.missed
+                } else {
+                    app.theme.good
+                }),
+            ),
         ]),
         Line::from(""),
-        Line::from(Span::styled("Press ESC to close", Style::default().fg(app.theme.low))),
+        Line::from(Span::styled(
+            "Press ESC to close",
+            Style::default().fg(app.theme.low),
+        )),
     ];
 
     let block = Block::default()
         .borders(Borders::ALL)
         .title(" Diagnostics ")
         .style(Style::default().bg(app.theme.bg));
-    
+
     let p = Paragraph::new(text)
         .block(block)
         .alignment(ratatui::layout::Alignment::Center);

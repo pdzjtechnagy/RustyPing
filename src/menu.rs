@@ -1,3 +1,5 @@
+use crate::storage::TargetHistory;
+use crate::theme::Theme;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{
     backend::Backend,
@@ -7,8 +9,6 @@ use ratatui::{
     widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph},
     Frame, Terminal,
 };
-use crate::storage::TargetHistory;
-use crate::theme::Theme;
 
 pub struct MenuApp {
     input: String,
@@ -58,7 +58,7 @@ impl MenuApp {
     pub fn run<B: Backend>(mut self, terminal: &mut Terminal<B>) -> anyhow::Result<Option<String>> {
         // Initial selection logic
         if self.selected_section == SelectionSection::Defaults && !self.defaults.is_empty() {
-             self.list_state.select(Some(0));
+            self.list_state.select(Some(0));
         }
 
         loop {
@@ -189,7 +189,8 @@ impl MenuApp {
                 if delta > 0 {
                     self.selected_section = SelectionSection::Defaults;
                     if let Some(i) = self.list_state.selected() {
-                         self.list_state.select(Some(i.min(self.defaults.len().saturating_sub(1))));
+                        self.list_state
+                            .select(Some(i.min(self.defaults.len().saturating_sub(1))));
                     } else {
                         self.list_state.select(Some(0));
                     }
@@ -199,10 +200,11 @@ impl MenuApp {
                 if delta < 0 && !self.history.is_empty() {
                     self.selected_section = SelectionSection::History;
                     if let Some(i) = self.list_state.selected() {
-                        self.list_state.select(Some(i.min(self.history.len().saturating_sub(1))));
-                   } else {
-                       self.list_state.select(Some(0));
-                   }
+                        self.list_state
+                            .select(Some(i.min(self.history.len().saturating_sub(1))));
+                    } else {
+                        self.list_state.select(Some(0));
+                    }
                 }
             }
             _ => {}
@@ -233,7 +235,7 @@ impl MenuApp {
 
     fn ui(&mut self, f: &mut Frame) {
         let area = f.area();
-        
+
         // Centered layout
         let vertical_layout = Layout::default()
             .direction(Direction::Vertical)
@@ -260,8 +262,13 @@ impl MenuApp {
         let main_block = Block::default()
             .borders(Borders::ALL)
             .border_style(Style::default().fg(self.theme.box_color))
-            .title(Span::styled(" RustyPing Startup ", Style::default().fg(self.theme.title).add_modifier(Modifier::BOLD)));
-        
+            .title(Span::styled(
+                " RustyPing Startup ",
+                Style::default()
+                    .fg(self.theme.title)
+                    .add_modifier(Modifier::BOLD),
+            ));
+
         f.render_widget(main_block.clone(), centered_rect);
 
         // Inner layout
@@ -280,8 +287,16 @@ impl MenuApp {
         // Header
         let title_text = vec![
             Line::from(vec![
-                Span::styled("Rusty", Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)),
-                Span::styled("Ping", Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    "Rusty",
+                    Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(
+                    "Ping",
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::raw(" v2.5.4"),
             ]),
             Line::from("High-performance network monitoring"),
@@ -293,11 +308,13 @@ impl MenuApp {
 
         // Input
         let input_style = if self.selected_section == SelectionSection::Input {
-            Style::default().fg(self.theme.hi_fg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.theme.hi_fg)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(self.theme.fg)
         };
-        
+
         let input_block = Block::default()
             .borders(Borders::ALL)
             .border_style(if self.selected_section == SelectionSection::Input {
@@ -308,7 +325,10 @@ impl MenuApp {
             .title(" Manual Entry ");
 
         let input_content = if self.input.is_empty() {
-            Span::styled("Type IP or hostname...", Style::default().fg(self.theme.low))
+            Span::styled(
+                "Type IP or hostname...",
+                Style::default().fg(self.theme.low),
+            )
         } else {
             Span::raw(&self.input)
         };
@@ -321,14 +341,17 @@ impl MenuApp {
         // Lists Layout
         let list_chunks = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Percentage(50),
-                Constraint::Percentage(50),
-            ])
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(chunks[2]);
 
         // Helper for list rendering
-        let render_list = |title: &str, items: &[String], section: SelectionSection, f: &mut Frame, area: Rect, state: &mut ListState, theme: &Theme| {
+        let render_list = |title: &str,
+                           items: &[String],
+                           section: SelectionSection,
+                           f: &mut Frame,
+                           area: Rect,
+                           state: &mut ListState,
+                           theme: &Theme| {
             let list_items: Vec<ListItem> = items
                 .iter()
                 .map(|i| ListItem::new(format!("  {i}")))
@@ -342,11 +365,18 @@ impl MenuApp {
             };
 
             let list = List::new(list_items)
-                .block(Block::default()
-                    .borders(Borders::ALL)
-                    .title(format!(" {title} "))
-                    .border_style(border_style))
-                .highlight_style(Style::default().bg(theme.selected_bg).fg(theme.selected_fg).add_modifier(Modifier::BOLD))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title(format!(" {title} "))
+                        .border_style(border_style),
+                )
+                .highlight_style(
+                    Style::default()
+                        .bg(theme.selected_bg)
+                        .fg(theme.selected_fg)
+                        .add_modifier(Modifier::BOLD),
+                )
                 .highlight_symbol(">> ");
 
             if is_selected {
@@ -356,8 +386,24 @@ impl MenuApp {
             }
         };
 
-        render_list("Recent History", &self.history, SelectionSection::History, f, list_chunks[0], &mut self.list_state, &self.theme);
-        render_list("Common Targets", &self.defaults, SelectionSection::Defaults, f, list_chunks[1], &mut self.list_state, &self.theme);
+        render_list(
+            "Recent History",
+            &self.history,
+            SelectionSection::History,
+            f,
+            list_chunks[0],
+            &mut self.list_state,
+            &self.theme,
+        );
+        render_list(
+            "Common Targets",
+            &self.defaults,
+            SelectionSection::Defaults,
+            f,
+            list_chunks[1],
+            &mut self.list_state,
+            &self.theme,
+        );
 
         // Footer
         let footer_text = Line::from(vec![
@@ -381,9 +427,14 @@ impl MenuApp {
             let help_area = centered_rect; // Reuse the main centered rect or make a new one
             let help_block = Block::default()
                 .borders(Borders::ALL)
-                .title(Span::styled(" Help & Controls ", Style::default().fg(self.theme.title).add_modifier(Modifier::BOLD)))
+                .title(Span::styled(
+                    " Help & Controls ",
+                    Style::default()
+                        .fg(self.theme.title)
+                        .add_modifier(Modifier::BOLD),
+                ))
                 .border_style(Style::default().fg(self.theme.hi_fg));
-            
+
             f.render_widget(Clear, help_area); // Clear background
             f.render_widget(help_block.clone(), help_area);
 
@@ -404,29 +455,82 @@ impl MenuApp {
             f.render_widget(intro, help_chunks[0]);
 
             let startup_controls = vec![
-                Line::from(Span::styled("Startup Menu Controls:", Style::default().add_modifier(Modifier::BOLD).fg(self.theme.hi_fg))),
-                Line::from(vec![Span::styled("  TAB        ", Style::default().fg(self.theme.fg)), Span::raw("Cycle between Input, History, and Defaults")]),
-                Line::from(vec![Span::styled("  ARROWS     ", Style::default().fg(self.theme.fg)), Span::raw("Navigate lists or move selection")]),
-                Line::from(vec![Span::styled("  ENTER      ", Style::default().fg(self.theme.fg)), Span::raw("Confirm selection / Start")]),
-                Line::from(vec![Span::styled("  F1 / ?     ", Style::default().fg(self.theme.fg)), Span::raw("Toggle this help menu")]),
-                Line::from(vec![Span::styled("  ESC        ", Style::default().fg(self.theme.fg)), Span::raw("Quit Application")]),
+                Line::from(Span::styled(
+                    "Startup Menu Controls:",
+                    Style::default()
+                        .add_modifier(Modifier::BOLD)
+                        .fg(self.theme.hi_fg),
+                )),
+                Line::from(vec![
+                    Span::styled("  TAB        ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Cycle between Input, History, and Defaults"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  ARROWS     ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Navigate lists or move selection"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  ENTER      ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Confirm selection / Start"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  F1 / ?     ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Toggle this help menu"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  ESC        ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Quit Application"),
+                ]),
             ];
-            f.render_widget(Paragraph::new(startup_controls).style(Style::default().fg(self.theme.low)), help_chunks[1]);
+            f.render_widget(
+                Paragraph::new(startup_controls).style(Style::default().fg(self.theme.low)),
+                help_chunks[1],
+            );
 
             let app_controls = vec![
-                Line::from(Span::styled("Application Controls (during monitoring):", Style::default().add_modifier(Modifier::BOLD).fg(self.theme.hi_fg))),
-                Line::from(vec![Span::styled("  Q          ", Style::default().fg(self.theme.fg)), Span::raw("Quit monitoring")]),
-                Line::from(vec![Span::styled("  S          ", Style::default().fg(self.theme.fg)), Span::raw("Start Speedtest")]),
-                Line::from(vec![Span::styled("  P          ", Style::default().fg(self.theme.fg)), Span::raw("Start Port Scan")]),
-                Line::from(vec![Span::styled("  J          ", Style::default().fg(self.theme.fg)), Span::raw("Toggle Jitter Graph")]),
-                Line::from(vec![Span::styled("  H          ", Style::default().fg(self.theme.fg)), Span::raw("Toggle History Panel")]),
-                Line::from(vec![Span::styled("  R          ", Style::default().fg(self.theme.fg)), Span::raw("Reset Statistics")]),
+                Line::from(Span::styled(
+                    "Application Controls (during monitoring):",
+                    Style::default()
+                        .add_modifier(Modifier::BOLD)
+                        .fg(self.theme.hi_fg),
+                )),
+                Line::from(vec![
+                    Span::styled("  Q          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Quit monitoring"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  S          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Start Speedtest"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  P          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Start Port Scan"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  J          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Toggle Jitter Graph"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  H          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Toggle History Panel"),
+                ]),
+                Line::from(vec![
+                    Span::styled("  R          ", Style::default().fg(self.theme.fg)),
+                    Span::raw("Reset Statistics"),
+                ]),
             ];
-            f.render_widget(Paragraph::new(app_controls).style(Style::default().fg(self.theme.low)), help_chunks[2]);
+            f.render_widget(
+                Paragraph::new(app_controls).style(Style::default().fg(self.theme.low)),
+                help_chunks[2],
+            );
 
             let close_hint = Paragraph::new("Press any key to close help...")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(self.theme.low).add_modifier(Modifier::ITALIC));
+                .style(
+                    Style::default()
+                        .fg(self.theme.low)
+                        .add_modifier(Modifier::ITALIC),
+                );
             f.render_widget(close_hint, help_chunks[3]);
         }
     }

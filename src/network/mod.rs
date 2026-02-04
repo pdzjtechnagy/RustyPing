@@ -1,10 +1,10 @@
 mod ping;
-mod speedtest;
 mod portscan;
+mod speedtest;
 
-pub use ping::{PingMonitor, PingResult, PingCommand, start_ping_task, WebCheckStatus};
+pub use ping::{start_ping_task, PingCommand, PingMonitor, PingResult, WebCheckStatus};
+pub use portscan::{PortResult, PortScanner, PortStatus};
 pub use speedtest::{SpeedTest, SpeedTestState};
-pub use portscan::{PortScanner, PortResult, PortStatus};
 
 #[derive(Debug, Clone)]
 pub struct NetworkStats {

@@ -1,11 +1,13 @@
-use crate::network::{PingMonitor, SpeedTest, PortScanner, PingResult, PingCommand, start_ping_task};
+use crate::network::{
+    start_ping_task, PingCommand, PingMonitor, PingResult, PortScanner, SpeedTest,
+};
 use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
+use chrono::Local;
+use std::fs::{File, OpenOptions};
+use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
-use std::fs::{OpenOptions, File};
-use std::io::{BufWriter, Write};
-use chrono::Local;
 
 use crate::theme::Theme;
 
@@ -21,7 +23,7 @@ pub struct App {
     pub target: String,
     pub ping_monitor: PingMonitor,
     pub start_time: Instant,
-    
+
     // Background Task Channels
     pub ping_tx: mpsc::Sender<PingCommand>,
     pub ping_rx: mpsc::Receiver<PingResult>,
@@ -39,11 +41,11 @@ pub struct App {
     pub show_history: bool,
     pub enable_web_check: bool,
     pub settings_selected: usize,
-    
+
     // Features
     pub speedtest: Option<SpeedTest>,
     pub portscan: Option<PortScanner>,
-    
+
     // Config
     pub config: Config,
 }
@@ -52,22 +54,17 @@ impl App {
     pub async fn new(target: String, log_file: Option<String>, monotone: bool) -> Result<Self> {
         let history = TargetHistory::load()?;
         let config = history.config.clone();
-        
-        // Start background ping task
-        let (target_addr, ping_tx, ping_rx, dns_duration) = start_ping_task(&target, config.ping_interval_ms).await?;
 
-        let mut ping_monitor = PingMonitor::new(
-            target_addr,
-            config.graph_history_length,
-        );
+        // Start background ping task
+        let (target_addr, ping_tx, ping_rx, dns_duration) =
+            start_ping_task(&target, config.ping_interval_ms).await?;
+
+        let mut ping_monitor = PingMonitor::new(target_addr, config.graph_history_length);
         ping_monitor.dns_duration = dns_duration;
 
         // Initialize logger if requested
         let log_writer = if let Some(path) = log_file {
-            let file = OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&path)?;
+            let file = OpenOptions::new().create(true).append(true).open(&path)?;
             let mut writer = BufWriter::new(file);
             // Write header if file is empty
             if std::fs::metadata(&path)?.len() == 0 {
@@ -85,7 +82,11 @@ impl App {
             ping_rx,
             log_writer,
             start_time: Instant::now(),
-            theme: if monotone { Theme::monotone() } else { Theme::blacksite() },
+            theme: if monotone {
+                Theme::monotone()
+            } else {
+                Theme::blacksite()
+            },
             current_tab: AppTab::Monitor,
             show_settings: false,
             show_diagnostics: false,
@@ -137,7 +138,7 @@ impl App {
     pub fn toggle_settings(&mut self) {
         self.show_settings = !self.show_settings;
         if self.show_settings {
-             self.show_diagnostics = false;
+            self.show_diagnostics = false;
         }
     }
 
@@ -163,7 +164,10 @@ impl App {
 
     pub async fn toggle_web_check(&mut self) {
         self.enable_web_check = !self.enable_web_check;
-        let _ = self.ping_tx.send(PingCommand::ToggleWebCheck(self.enable_web_check)).await;
+        let _ = self
+            .ping_tx
+            .send(PingCommand::ToggleWebCheck(self.enable_web_check))
+            .await;
     }
 
     pub async fn start_speedtest(&mut self) -> Result<()> {
@@ -183,7 +187,8 @@ impl App {
     pub fn increase_history(&mut self) {
         // Increase by 10 seconds
         let new_len = self.config.graph_history_length + 10;
-        if new_len <= 600 { // Max 10 minutes
+        if new_len <= 600 {
+            // Max 10 minutes
             self.config.graph_history_length = new_len;
             self.ping_monitor.set_max_history(new_len);
         }
@@ -192,7 +197,8 @@ impl App {
     pub fn decrease_history(&mut self) {
         // Decrease by 10 seconds
         let new_len = self.config.graph_history_length.saturating_sub(10);
-        if new_len >= 30 { // Min 30 seconds
+        if new_len >= 30 {
+            // Min 30 seconds
             self.config.graph_history_length = new_len;
             self.ping_monitor.set_max_history(new_len);
         }
@@ -204,7 +210,9 @@ impl App {
         let new_interval = self.config.ping_interval_ms.saturating_sub(50);
         if new_interval >= 50 {
             self.config.ping_interval_ms = new_interval;
-            let _ = self.ping_tx.try_send(PingCommand::SetInterval(new_interval));
+            let _ = self
+                .ping_tx
+                .try_send(PingCommand::SetInterval(new_interval));
         }
     }
 
@@ -214,7 +222,9 @@ impl App {
         let new_interval = self.config.ping_interval_ms + 50;
         if new_interval <= 5000 {
             self.config.ping_interval_ms = new_interval;
-            let _ = self.ping_tx.try_send(PingCommand::SetInterval(new_interval));
+            let _ = self
+                .ping_tx
+                .try_send(PingCommand::SetInterval(new_interval));
         }
     }
 
