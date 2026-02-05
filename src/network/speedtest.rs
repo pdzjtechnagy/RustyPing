@@ -91,7 +91,10 @@ impl SpeedTest {
                         }
                     }
                     SpeedTestEvent::DownloadComplete { mbps, avg, peak } => {
-                        info!("Download complete: avg={:.2} Mbps, peak={:.2} Mbps", avg, peak);
+                        info!(
+                            "Download complete: avg={:.2} Mbps, peak={:.2} Mbps",
+                            avg, peak
+                        );
                         // Transition to Uploading
                         self.state = SpeedTestState::Uploading {
                             bytes_sent: 0,
@@ -222,7 +225,11 @@ async fn run_download_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         };
 
         total_bytes += chunk.len() as u64;
-        trace!("Download chunk: size={}, total={}", chunk.len(), total_bytes);
+        trace!(
+            "Download chunk: size={}, total={}",
+            chunk.len(),
+            total_bytes
+        );
 
         // Update progress every 100ms to avoid flooding channel
         if last_update.elapsed() >= Duration::from_millis(100) {
@@ -331,8 +338,10 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
         0.0
     };
 
-    info!("Upload complete: total_bytes={}, mbps={:.2}Mbps, duration={:?}", 
-        total_bytes, upload_mbps, duration);
+    info!(
+        "Upload complete: total_bytes={}, mbps={:.2}Mbps, duration={:?}",
+        total_bytes, upload_mbps, duration
+    );
 
     let _ = tx
         .send(SpeedTestEvent::UploadComplete {
@@ -350,7 +359,7 @@ mod tests {
     async fn test_speed_test_state_transitions() {
         let mut st = SpeedTest::new("google.com").await.unwrap();
         assert!(matches!(st.state, SpeedTestState::Preparing));
-        
+
         // Mock update to trigger task spawn
         let _ = st.update().await;
         assert!(matches!(st.state, SpeedTestState::Downloading { .. }));

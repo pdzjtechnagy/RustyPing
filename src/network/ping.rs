@@ -95,7 +95,10 @@ impl PingMonitor {
                 }
             }
             PingResult::Timeout => {
-                debug!("Processing Ping Timeout (Total failed: {})", self.failed_pings + 1);
+                debug!(
+                    "Processing Ping Timeout (Total failed: {})",
+                    self.failed_pings + 1
+                );
                 self.failed_pings += 1;
                 self.history.push_back(None);
             }

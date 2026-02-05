@@ -9,8 +9,6 @@ mod ui;
 
 use anyhow::Result;
 use app::App;
-use tracing::{info, debug, trace};
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
@@ -19,6 +17,8 @@ use crossterm::{
 use menu::MenuApp;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self};
+use tracing::{debug, info, trace};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn print_help() {
     println!("RustyPing v2.6.2 - High-performance network monitoring tool");
@@ -48,10 +48,8 @@ fn print_help() {
 #[cfg(windows)]
 fn check_permissions() {
     use std::process::Command;
-    let output = Command::new("net")
-        .arg("session")
-        .output();
-    
+    let output = Command::new("net").arg("session").output();
+
     let is_admin = match output {
         Ok(out) => out.status.success(),
         Err(_) => false,

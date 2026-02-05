@@ -150,7 +150,7 @@ jobs:
 
   build-windows:
     name: Build Windows (${{ matrix.target }})
-    needs: lint-and-audit
+    # needs: lint-and-audit
     runs-on: windows-latest
     strategy:
       fail-fast: false

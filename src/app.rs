@@ -4,11 +4,11 @@ use crate::network::{
 use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
 use chrono::Local;
-use tracing::{debug, error, info, trace};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
+use tracing::{debug, error, info, trace};
 
 use crate::theme::Theme;
 
@@ -62,7 +62,10 @@ impl App {
         debug!("Starting background ping task...");
         let (target_addr, ping_tx, ping_rx, dns_duration) =
             start_ping_task(&target, config.ping_interval_ms).await?;
-        info!("Ping task started. Target addr: {}, DNS duration: {:?}", target_addr, dns_duration);
+        info!(
+            "Ping task started. Target addr: {}, DNS duration: {:?}",
+            target_addr, dns_duration
+        );
 
         let mut ping_monitor = PingMonitor::new(target_addr, config.graph_history_length);
         ping_monitor.dns_duration = dns_duration;
@@ -109,8 +112,11 @@ impl App {
     pub async fn tick(&mut self) -> Result<()> {
         // Ping interval is handled by the background task
         // We just process results here
-        trace!("App tick - active features: speedtest={}, portscan={}", 
-            self.speedtest.is_some(), self.portscan.is_some());
+        trace!(
+            "App tick - active features: speedtest={}, portscan={}",
+            self.speedtest.is_some(),
+            self.portscan.is_some()
+        );
 
         // Process incoming ping results
         let mut processed_count = 0;
@@ -126,7 +132,9 @@ impl App {
                     PingResult::WebCheck { .. } => (0.0, "WebCheck"), // Skip logging detailed web stats for now
                 };
                 if status != "WebCheck" {
-                    if let Err(e) = writeln!(writer, "{},{},{:.2},{}", timestamp, self.target, ms, status) {
+                    if let Err(e) =
+                        writeln!(writer, "{},{},{:.2},{}", timestamp, self.target, ms, status)
+                    {
                         error!("Failed to write to CSV log: {}", e);
                     }
                 }

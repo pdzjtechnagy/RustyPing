@@ -1,7 +1,7 @@
-# RustyPing Deep Audit Report (v2.6.3)
+# RustyPing Deep Audit Report (v2.6.4)
 
 ## 1. Executive Summary
-The audit of RustyPing v2.6.3 reveals a project with strong core networking logic and an excellent TUI implementation. However, several critical dependency vulnerabilities and architectural "blind spots" were identified, particularly regarding license compliance and long-term maintainability of the TUI stack.
+The audit of RustyPing v2.6.4 reveals a project with strong core networking logic and an excellent TUI implementation. However, several critical dependency vulnerabilities and architectural "blind spots" were identified, particularly regarding license compliance and long-term maintainability of the TUI stack.
 
 ---
 
