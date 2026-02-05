@@ -1,7 +1,7 @@
 # RustyPing 🦀
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-2.5.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.7.0-green.svg)
 
 ---
 

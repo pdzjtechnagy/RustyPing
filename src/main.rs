@@ -9,8 +9,6 @@ mod ui;
 
 use anyhow::Result;
 use app::App;
-use tracing::{info, debug, trace};
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
@@ -19,10 +17,12 @@ use crossterm::{
 use menu::MenuApp;
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self};
+use tracing::{debug, info, trace};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn print_help() {
-    println!("RustyPing v2.5.7 - High-performance network monitoring tool");
-    println!();
+    println!("RustyPing v2.7.0");
+    println!("High-performance network monitoring for professionals.");
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
     println!("Arguments:");
@@ -33,6 +33,7 @@ fn print_help() {
     println!("  --list        List recent targets");
     println!("  -m, --monotone Force monochrome mode");
     println!("  --log <FILE>  Log statistics to a CSV file");
+    println!("  -v, --verbose Enable verbose logging (level: trace)");
     println!();
     println!("Controls:");
     println!("  q, Q          Quit");
@@ -44,23 +45,42 @@ fn print_help() {
     println!("  Arrows        Adjust graph scale / history");
 }
 
+#[cfg(windows)]
+fn check_permissions() {
+    use std::process::Command;
+    let output = Command::new("net").arg("session").output();
+
+    let is_admin = match output {
+        Ok(out) => out.status.success(),
+        Err(_) => false,
+    };
+
+    if !is_admin {
+        println!("WARNING: RustyPing requires Administrator privileges on Windows for ICMP (ping) operations.");
+        println!("Please restart the terminal as Administrator.");
+        println!();
+    }
+}
+
+#[cfg(not(windows))]
+fn check_permissions() {
+    // On Linux, we could check for CAP_NET_RAW, but for now we'll just note it in logs
+    trace!("Checking permissions for non-windows platform...");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize tracing for comprehensive debugging
-    tracing_subscriber::registry()
-        .with(fmt::layer().with_writer(io::stderr))
-        .with(EnvFilter::from_default_env().add_directive(tracing::Level::DEBUG.into()))
-        .init();
-
-    info!("Starting RustyPing v2.5.7 Debug Session");
-
-    // Parse CLI arguments
+    check_permissions();
+    // Parse CLI arguments early to determine log level
     let mut target_arg = None;
     let mut monotone = false;
     let mut log_file = None;
-    let mut args = std::env::args().skip(1);
+    let mut verbose = false;
+    let args_vec: Vec<String> = std::env::args().skip(1).collect();
+    let mut i = 0;
 
-    while let Some(arg) = args.next() {
+    while i < args_vec.len() {
+        let arg = &args_vec[i];
         match arg.as_str() {
             "--help" | "-h" => {
                 print_help();
@@ -74,9 +94,13 @@ async fn main() -> Result<()> {
             "--monotone" | "-m" => {
                 monotone = true;
             }
+            "--verbose" | "-v" => {
+                verbose = true;
+            }
             "--log" => {
-                if let Some(path) = args.next() {
-                    log_file = Some(path);
+                if i + 1 < args_vec.len() {
+                    log_file = Some(args_vec[i + 1].clone());
+                    i += 1;
                 } else {
                     eprintln!("Error: --log requires a file path");
                     return Ok(());
@@ -84,11 +108,27 @@ async fn main() -> Result<()> {
             }
             _ => {
                 if !arg.starts_with('-') {
-                    target_arg = Some(arg);
+                    target_arg = Some(arg.clone());
                 }
             }
         }
+        i += 1;
     }
+
+    // Initialize tracing for comprehensive debugging
+    let log_level = if verbose {
+        tracing::Level::TRACE
+    } else {
+        tracing::Level::DEBUG
+    };
+
+    tracing_subscriber::registry()
+        .with(fmt::layer().with_writer(io::stderr))
+        .with(EnvFilter::from_default_env().add_directive(log_level.into()))
+        .init();
+
+    info!("Starting RustyPing v2.7.0 Deep Debug Session");
+    debug!("Verbose mode: {}, Monotone: {}", verbose, monotone);
 
     // Set theme mode
     crate::theme::Theme::set_monotone(monotone);
@@ -140,7 +180,7 @@ async fn main() -> Result<()> {
         }
     }
 
-    info!("RustyPing v2.5.7 Debug Session Ended");
+    info!("RustyPing v2.7.0 Debug Session Ended");
     // Restore terminal
     disable_raw_mode()?;
     execute!(

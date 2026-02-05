@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.7.0] - 2026-02-05
+
+### Added
+- **Stability Framework**: Introduced `AUDIT_SOP.md`, `AUDIT_TOOLS.md`, and `check_stability.ps1` for repeatable quality assurance.
+- **Diagnostic Tools**: Automated installation of `cargo-deny`, `cargo-bloat`, and `cargo-nextest` via `install_tools.ps1`.
+- **Windows Safety**: Added runtime checks for Administrator privileges to prevent silent ICMP failures.
+
+### Changed
+- **CI/CD Architecture**: Decoupled build jobs from linting jobs to improve pipeline reliability.
+- **Error Reporting**: Enhanced CI logs to capture and display full compiler errors in the GitHub Summary.
+- **Packaging**: Updated RPM metadata to fully comply with `cargo-generate-rpm` requirements.
+
+### Fixed
+- **Toolchain Conflicts**: Pinned developer tools to versions compatible with Rust 1.88 (MSRV).
+- **RPM Generation**: Resolved missing `license` field errors in Linux packaging.
+
+## [v2.6.4] - 2026-02-05
+
+### Fixed
+- **RPM Packaging**: Added missing `license` and `repository` fields to `Cargo.toml` required by `cargo-generate-rpm`.
+- **CI Resilience**: Decoupled multi-platform builds from the linting gate to ensure binary availability.
+- **Code Style**: Synchronized all source files with `rustfmt`.
+
+## [v2.6.0] - 2026-02-04
+
+### Added
+- **CI Diagnostics**: Enhanced GitHub Actions with detailed error reporting for all architectures.
+- **Unit Tests**: Added comprehensive tests for `SpeedTest` state machine and state representation.
+
+### Changed
+- **Code Quality**: Resolved all compiler warnings and dead code notices across the project.
+- **Test Optimization**: Standardized unit test naming and ignored network-heavy tests in CI to improve reliability.
+
+### Fixed
+- **CI Stability**: Fixed potential compilation failures in cross-compiled Linux environments.
+
+## [v2.5.9] - 2026-02-04
+
+### Added
+- **Verbose Mode**: Added `-v` / `--verbose` flag for real-time trace logging.
+- **Deep Debugging**: Implemented granular logging across all network modules (Ping, Speedtest, Portscan).
+- **DNS Timing**: Added resolution duration tracking and logging.
+
+### Changed
+- **Logging Level**: Default log level set to `DEBUG`, with `TRACE` available via verbose flag.
+- **Error Reporting**: Enhanced background task error propagation for better diagnostics.
+
+### Fixed
+- **Stability**: Fixed potential channel overflows in high-frequency ping scenarios.
+- **Resource Cleanup**: Improved termination logic for background threads.
+
 ## [v2.5.7] - 2026-02-04
 
 ### Added

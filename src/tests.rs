@@ -4,7 +4,7 @@ mod unit_tests {
     use crate::theme::Theme;
 
     #[test]
-    fn test_speed_test_state_transitions() {
+    fn test_speed_test_state_representation() {
         let state = SpeedTestState::Preparing;
         assert!(matches!(state, SpeedTestState::Preparing));
     }
