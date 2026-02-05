@@ -3,7 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use tracing::{debug, info, trace, warn};
+use tracing::{debug, info, trace};
 
 #[derive(Debug, Clone)]
 pub struct PortResult {

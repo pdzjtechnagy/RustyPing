@@ -85,11 +85,22 @@ jobs:
           tool: cross,cargo-deb,cargo-generate-rpm
 
       - name: Build with cross
-        run: cross build --release --target ${{ matrix.target }}
+        run: cross build --release --target ${{ matrix.target }} --message-format=json > build_output.json || (cat build_output.json && exit 1)
         env:
           PKG_CONFIG_ALLOW_CROSS: 1
           CROSS_NO_WARNINGS: 0
           DOCKER_BUILDKIT: 1
+
+      - name: Debug Build Failures
+        if: failure()
+        run: |
+          echo "### Build Failure Analysis" >> $GITHUB_STEP_SUMMARY
+          if [ -f build_output.json ]; then
+            grep -E "error|warning" build_output.json | jq -r '.message.rendered // .reason' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No build output found. Likely a Docker or Cross infrastructure error." >> $GITHUB_STEP_SUMMARY
+          fi
+        shell: bash
 
       - name: Prepare Artifact
         run: |
@@ -159,7 +170,21 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --message-format=json > build_output.json || (Get-Content build_output.json && exit 1)
+
+      - name: Debug Build Failures
+        if: failure()
+        run: |
+          echo "### Build Failure Analysis" >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path build_output.json) {
+            Get-Content build_output.json | Select-String "error|warning" | ForEach-Object { 
+              $obj = $_.ToString() | ConvertFrom-Json
+              $obj.message.rendered
+            } >> $env:GITHUB_STEP_SUMMARY
+          } else {
+            echo "No build output found." >> $env:GITHUB_STEP_SUMMARY
+          }
+        shell: pwsh
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

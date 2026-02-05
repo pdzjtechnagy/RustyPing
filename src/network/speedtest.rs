@@ -147,6 +147,7 @@ impl SpeedTest {
         &self.state
     }
 
+    #[allow(dead_code)]
     pub fn is_complete(&self) -> bool {
         matches!(
             self.state,
@@ -339,4 +340,19 @@ async fn run_upload_test_task(tx: mpsc::Sender<SpeedTestEvent>) {
             duration,
         })
         .await;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_speed_test_state_transitions() {
+        let mut st = SpeedTest::new("google.com").await.unwrap();
+        assert!(matches!(st.state, SpeedTestState::Preparing));
+        
+        // Mock update to trigger task spawn
+        let _ = st.update().await;
+        assert!(matches!(st.state, SpeedTestState::Downloading { .. }));
+    }
 }

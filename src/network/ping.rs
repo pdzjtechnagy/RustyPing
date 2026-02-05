@@ -381,6 +381,7 @@ mod tests {
     use tokio::time::timeout;
 
     #[tokio::test]
+    #[ignore]
     async fn test_network_intelligence_flow() {
         // 1. Start the ping task against Google DNS
         // Note: this actually performs network IO, so it might flake if offline.
