@@ -2,8 +2,14 @@ name: Multi-Platform Build & Release
 
 on:
   push:
+    branches:
+      - main
+      - 'release/**'
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
