@@ -2,7 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v2.5.8] - 2026-02-04
+## [v2.6.0] - 2026-02-04
+
+### Added
+- **CI Diagnostics**: Enhanced GitHub Actions with detailed error reporting for all architectures.
+- **Unit Tests**: Added comprehensive tests for `SpeedTest` state machine and state representation.
+
+### Changed
+- **Code Quality**: Resolved all compiler warnings and dead code notices across the project.
+- **Test Optimization**: Standardized unit test naming and ignored network-heavy tests in CI to improve reliability.
+
+### Fixed
+- **CI Stability**: Fixed potential compilation failures in cross-compiled Linux environments.
+
+## [v2.5.9] - 2026-02-04
 
 ### Added
 - **Verbose Mode**: Added `-v` / `--verbose` flag for real-time trace logging.

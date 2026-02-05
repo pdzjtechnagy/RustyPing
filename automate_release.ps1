@@ -104,12 +104,12 @@ $changelogPath = "CHANGELOG.md"
 $releaseNotesPath = "RELEASE_NOTES.md"
 
 if (Test-Path $changelogPath) {
-    $changelog = Get-Content $changelogPath
-    if (!($changelog -match "## \[$fullVersion\]")) {
-        Write-Warning "No entry for $fullVersion found in CHANGELOG.md."
-        Write-Host "Please add the entry now. I will wait for you to save the file." -ForegroundColor Yellow
-        pause
-    }
+        $changelog = Get-Content $changelogPath
+        if (!($changelog -match "## \[$fullVersion\]")) {
+            Write-Warning "No entry for $fullVersion found in CHANGELOG.md."
+            Write-Host "Please add the entry now. I will wait for you to save the file." -ForegroundColor Yellow
+            # pause
+        }
     
     # Extract latest version notes for RELEASE_NOTES.md
     $extracting = $false
