@@ -109,10 +109,13 @@ impl App {
     pub async fn tick(&mut self) -> Result<()> {
         // Ping interval is handled by the background task
         // We just process results here
-        trace!("App tick");
+        trace!("App tick - active features: speedtest={}, portscan={}", 
+            self.speedtest.is_some(), self.portscan.is_some());
 
         // Process incoming ping results
+        let mut processed_count = 0;
         while let Ok(result) = self.ping_rx.try_recv() {
+            processed_count += 1;
             trace!("Received ping result: {:?}", result);
             // Log result if enabled
             if let Some(writer) = &mut self.log_writer {
@@ -123,21 +126,30 @@ impl App {
                     PingResult::WebCheck { .. } => (0.0, "WebCheck"), // Skip logging detailed web stats for now
                 };
                 if status != "WebCheck" {
-                    writeln!(writer, "{},{},{:.2},{}", timestamp, self.target, ms, status).ok();
+                    if let Err(e) = writeln!(writer, "{},{},{:.2},{}", timestamp, self.target, ms, status) {
+                        error!("Failed to write to CSV log: {}", e);
+                    }
                 }
             }
 
             self.ping_monitor.process_result(result);
         }
+        if processed_count > 0 {
+            trace!("Processed {} ping results in this tick", processed_count);
+        }
 
         // Update speedtest if running (don't auto-close, user must press C)
         if let Some(ref mut st) = self.speedtest {
-            st.update().await?;
+            if let Err(e) = st.update().await {
+                error!("Speedtest update error: {}", e);
+            }
         }
 
         // Update portscan if running (don't auto-close, user must press C)
         if let Some(ref mut ps) = self.portscan {
-            ps.update().await?;
+            if let Err(e) = ps.update().await {
+                error!("Portscan update error: {}", e);
+            }
         }
 
         Ok(())
@@ -145,6 +157,7 @@ impl App {
 
     pub fn toggle_settings(&mut self) {
         self.show_settings = !self.show_settings;
+        debug!("Toggle settings: {}", self.show_settings);
         if self.show_settings {
             self.show_diagnostics = false;
         }
@@ -152,6 +165,7 @@ impl App {
 
     pub fn toggle_diagnostics(&mut self) {
         self.show_diagnostics = !self.show_diagnostics;
+        debug!("Toggle diagnostics: {}", self.show_diagnostics);
         if self.show_diagnostics {
             self.show_settings = false;
         }
@@ -159,19 +173,23 @@ impl App {
 
     pub fn toggle_jitter_panel(&mut self) {
         self.show_jitter = !self.show_jitter;
+        debug!("Toggle jitter panel: {}", self.show_jitter);
     }
 
     pub fn toggle_history_panel(&mut self) {
         self.show_history = !self.show_history;
+        debug!("Toggle history panel: {}", self.show_history);
     }
 
     pub fn reset_stats(&mut self) {
+        info!("Resetting statistics for {}", self.target);
         self.ping_monitor.reset();
         self.start_time = Instant::now();
     }
 
     pub async fn toggle_web_check(&mut self) {
         self.enable_web_check = !self.enable_web_check;
+        info!("Toggling web check: {}", self.enable_web_check);
         let _ = self
             .ping_tx
             .send(PingCommand::ToggleWebCheck(self.enable_web_check))
@@ -180,6 +198,7 @@ impl App {
 
     pub async fn start_speedtest(&mut self) -> Result<()> {
         if self.speedtest.is_none() {
+            info!("Starting speedtest for {}", self.target);
             self.speedtest = Some(SpeedTest::new(&self.target).await?);
         }
         Ok(())
@@ -187,6 +206,7 @@ impl App {
 
     pub async fn start_portscan(&mut self) -> Result<()> {
         if self.portscan.is_none() {
+            info!("Starting port scan for {}", self.target);
             self.portscan = Some(PortScanner::new(&self.target).await?);
         }
         Ok(())

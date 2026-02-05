@@ -121,20 +121,19 @@ impl PortScanner {
     async fn scan_port(&self, port: u16) -> PortStatus {
         let addr = SocketAddr::new(self.target_ip, port);
         trace!("Scanning port: {}", port);
-
-        match timeout(Duration::from_secs(2), TcpStream::connect(&addr)).await {
+        match timeout(Duration::from_millis(1500), TcpStream::connect(addr)).await {
             Ok(Ok(_)) => {
                 debug!("Port {} is OPEN", port);
                 PortStatus::Open
-            }
+            },
             Ok(Err(e)) => {
-                trace!("Port {} is CLOSED ({})", port, e);
+                trace!("Port {} is CLOSED: {}", port, e);
                 PortStatus::Closed
-            }
+            },
             Err(_) => {
-                warn!("Port {} is FILTERED (Timeout)", port);
+                debug!("Port {} is FILTERED (timeout)", port);
                 PortStatus::Filtered
-            }
+            },
         }
     }
 

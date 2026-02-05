@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.5.8] - 2026-02-04
+
+### Added
+- **Verbose Mode**: Added `-v` / `--verbose` flag for real-time trace logging.
+- **Deep Debugging**: Implemented granular logging across all network modules (Ping, Speedtest, Portscan).
+- **DNS Timing**: Added resolution duration tracking and logging.
+
+### Changed
+- **Logging Level**: Default log level set to `DEBUG`, with `TRACE` available via verbose flag.
+- **Error Reporting**: Enhanced background task error propagation for better diagnostics.
+
+### Fixed
+- **Stability**: Fixed potential channel overflows in high-frequency ping scenarios.
+- **Resource Cleanup**: Improved termination logic for background threads.
+
 ## [v2.5.7] - 2026-02-04
 
 ### Added

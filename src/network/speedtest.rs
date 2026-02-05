@@ -52,9 +52,10 @@ impl SpeedTest {
         })
     }
 
-    pub async fn update(&mut self) -> Result<bool> {
+    async fn update(&mut self) -> Result<bool> {
         // Initialize if in Preparing state
         if matches!(self.state, SpeedTestState::Preparing) {
+            debug!("Initializing SpeedTest background tasks");
             let (tx, rx) = mpsc::channel(100);
             self.tx = Some(tx.clone());
             self.rx = Some(rx);
@@ -62,6 +63,7 @@ impl SpeedTest {
             // Start Download Task
             let tx_clone = tx.clone();
             tokio::spawn(async move {
+                debug!("Spawning Download test task");
                 run_download_test_task(tx_clone).await;
             });
 
@@ -75,6 +77,7 @@ impl SpeedTest {
         // Process events
         if let Some(rx) = &mut self.rx {
             while let Ok(event) = rx.try_recv() {
+                trace!("Received SpeedTest event: {:?}", event);
                 match event {
                     SpeedTestEvent::DownloadProgress { bytes, speed } => {
                         if let SpeedTestState::Downloading {
@@ -88,6 +91,7 @@ impl SpeedTest {
                         }
                     }
                     SpeedTestEvent::DownloadComplete { mbps, avg, peak } => {
+                        info!("Download complete: avg={:.2} Mbps, peak={:.2} Mbps", avg, peak);
                         // Transition to Uploading
                         self.state = SpeedTestState::Uploading {
                             bytes_sent: 0,
@@ -98,6 +102,7 @@ impl SpeedTest {
                         if let Some(tx) = &self.tx {
                             let tx_clone = tx.clone();
                             tokio::spawn(async move {
+                                debug!("Spawning Upload test task");
                                 run_upload_test_task(tx_clone).await;
                             });
                         }
@@ -108,28 +113,34 @@ impl SpeedTest {
                         }
                     }
                     SpeedTestEvent::UploadComplete { mbps, duration } => {
+                        info!("Upload complete: {:.2} Mbps in {:?}", mbps, duration);
                         if let SpeedTestState::Uploading {
                             download_results, ..
                         } = &self.state
                         {
+                            let (dl_mbps, dl_avg, dl_peak) = *download_results;
                             self.state = SpeedTestState::Complete {
-                                download_mbps: download_results.0,
+                                download_mbps: dl_mbps,
                                 upload_mbps: mbps,
-                                total_bytes: 0,
+                                total_bytes: 0, // Not tracked across both
                                 duration,
-                                avg_speed: download_results.1,
-                                peak_speed: download_results.2,
+                                avg_speed: dl_avg,
+                                peak_speed: dl_peak,
                             };
+                            debug!("SpeedTest transition to Complete");
+                            return Ok(true);
                         }
                     }
-                    SpeedTestEvent::Error(msg) => {
-                        self.state = SpeedTestState::Error(msg);
+                    SpeedTestEvent::Error(e) => {
+                        error!("SpeedTest failure: {}", e);
+                        self.state = SpeedTestState::Error(e);
+                        return Ok(true);
                     }
                 }
             }
         }
 
-        Ok(self.is_complete())
+        Ok(false)
     }
 
     pub fn get_state(&self) -> &SpeedTestState {

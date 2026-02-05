@@ -84,24 +84,29 @@ impl PingMonitor {
 
     pub fn process_result(&mut self, result: PingResult) {
         self.total_pings += 1;
-        match result {
+        match &result {
             PingResult::Success(ms) => {
+                trace!("Processing Ping Success: {:.2}ms", ms);
                 self.successful_pings += 1;
-                self.history.push_back(Some(ms));
-                self.recent.push_back(ms);
+                self.history.push_back(Some(*ms));
+                self.recent.push_back(*ms);
                 if self.recent.len() > 10 {
                     self.recent.pop_front();
                 }
             }
             PingResult::Timeout => {
+                debug!("Processing Ping Timeout (Total failed: {})", self.failed_pings + 1);
                 self.failed_pings += 1;
                 self.history.push_back(None);
             }
-            PingResult::WebCheck { port, status } => match port {
-                80 => self.tcp_80 = status,
-                443 => self.tcp_443 = status,
-                _ => {}
-            },
+            PingResult::WebCheck { port, status } => {
+                debug!("Processing WebCheck Result: Port {} -> {:?}", port, status);
+                match port {
+                    80 => self.tcp_80 = status.clone(),
+                    443 => self.tcp_443 = status.clone(),
+                    _ => {}
+                }
+            }
         }
 
         if self.history.len() > self.max_history {
@@ -259,7 +264,14 @@ pub async fn start_ping_task(
     let addr = target_addr;
 
     tokio::spawn(async move {
-        let mut pinger = client.pinger(addr, PingIdentifier(rand::random())).await;
+        debug!("Starting background ping task for {}", addr);
+        let mut pinger = match client.pinger(addr, PingIdentifier(rand::random())).await {
+            Ok(p) => p,
+            Err(e) => {
+                error!("Failed to initialize pinger for {}: {}", addr, e);
+                return;
+            }
+        };
         let mut seq = 0;
         let mut interval = tokio::time::interval(Duration::from_millis(interval_ms));
         let mut web_check_enabled = false;
@@ -268,6 +280,8 @@ pub async fn start_ping_task(
             tokio::select! {
                 _ = interval.tick() => {
                      let payload = [0; 8];
+                     seq += 1;
+                     trace!("Sending ICMP Echo Request (seq={}) to {}", seq, addr);
 
                      // Spawn web checks if enabled (fire and forget)
                      if web_check_enabled {
@@ -276,61 +290,87 @@ pub async fn start_ping_task(
                         let target = addr;
 
                         tokio::spawn(async move {
+                            trace!("Starting TCP 80 check for {}", target);
                             let start = std::time::Instant::now();
-                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream::connect((target, 80))).await {
-                                Ok(Ok(_)) => WebCheckStatus::Success(start.elapsed().as_secs_f64() * 1000.0),
-                                Ok(Err(e)) => match e.kind() {
-                                    io::ErrorKind::ConnectionRefused => WebCheckStatus::ConnectionRefused,
-                                    io::ErrorKind::TimedOut => WebCheckStatus::Timeout,
-                                    _ => WebCheckStatus::Error(e.to_string()),
+                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream.connect((target, 80))).await {
+                                Ok(Ok(_)) => {
+                                    let dur = start.elapsed().as_secs_f64() * 1000.0;
+                                    trace!("TCP 80 success: {:.2}ms", dur);
+                                    WebCheckStatus::Success(dur)
                                 },
-                                Err(_) => WebCheckStatus::Timeout,
+                                Ok(Err(e)) => {
+                                    debug!("TCP 80 error: {}", e);
+                                    match e.kind() {
+                                        io::ErrorKind::ConnectionRefused => WebCheckStatus::ConnectionRefused,
+                                        io::ErrorKind::TimedOut => WebCheckStatus::Timeout,
+                                        _ => WebCheckStatus::Error(e.to_string()),
+                                    }
+                                },
+                                Err(_) => {
+                                    debug!("TCP 80 timeout");
+                                    WebCheckStatus::Timeout
+                                },
                             };
                             let _ = tx80.send(PingResult::WebCheck { port: 80, status }).await;
                         });
 
                         tokio::spawn(async move {
+                            trace!("Starting TCP 443 check for {}", target);
                             let start = std::time::Instant::now();
-                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream::connect((target, 443))).await {
-                                Ok(Ok(_)) => WebCheckStatus::Success(start.elapsed().as_secs_f64() * 1000.0),
-                                Ok(Err(e)) => match e.kind() {
-                                    io::ErrorKind::ConnectionRefused => WebCheckStatus::ConnectionRefused,
-                                    io::ErrorKind::TimedOut => WebCheckStatus::Timeout,
-                                    _ => WebCheckStatus::Error(e.to_string()),
+                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream.connect((target, 443))).await {
+                                Ok(Ok(_)) => {
+                                    let dur = start.elapsed().as_secs_f64() * 1000.0;
+                                    trace!("TCP 443 success: {:.2}ms", dur);
+                                    WebCheckStatus::Success(dur)
                                 },
-                                Err(_) => WebCheckStatus::Timeout,
+                                Ok(Err(e)) => {
+                                    debug!("TCP 443 error: {}", e);
+                                    match e.kind() {
+                                        io::ErrorKind::ConnectionRefused => WebCheckStatus::ConnectionRefused,
+                                        io::ErrorKind::TimedOut => WebCheckStatus::Timeout,
+                                        _ => WebCheckStatus::Error(e.to_string()),
+                                    }
+                                },
+                                Err(_) => {
+                                    debug!("TCP 443 timeout");
+                                    WebCheckStatus::Timeout
+                                },
                             };
                             let _ = tx443.send(PingResult::WebCheck { port: 443, status }).await;
                         });
                      }
 
-                     match tokio::time::timeout(Duration::from_secs(2), pinger.ping(PingSequence(seq), &payload)).await {
-                         Ok(Ok((_, duration))) => {
+                     match pinger.ping(PingSequence(seq), &payload).await {
+                         Ok((_, duration)) => {
                              let ms = duration.as_secs_f64() * 1000.0;
-                             trace!("Ping Success: seq={} latency={:.2}ms", seq, ms);
-                             let _ = res_tx.send(PingResult::Success(ms)).await;
+                             trace!("ICMP Echo Reply (seq={}) from {}: {:.2}ms", seq, addr, ms);
+                             if let Err(e) = res_tx.send(PingResult::Success(ms)).await {
+                                 warn!("Failed to send ping result to channel: {}", e);
+                                 break;
+                             }
                          }
-                         Ok(Err(e)) => {
-                             warn!("Ping Error: seq={} error={}", seq, e);
-                             let _ = res_tx.send(PingResult::Timeout).await;
-                         }
-                         Err(_) => {
-                             warn!("Ping Timeout: seq={}", seq);
-                             let _ = res_tx.send(PingResult::Timeout).await;
+                         Err(e) => {
+                             debug!("ICMP Ping error (seq={}) to {}: {}", seq, addr, e);
+                             if let Err(e) = res_tx.send(PingResult::Timeout).await {
+                                 warn!("Failed to send ping timeout to channel: {}", e);
+                                 break;
+                             }
                          }
                      }
-                     seq = seq.wrapping_add(1);
                 }
-                cmd = cmd_rx.recv() => {
+                Some(cmd) = cmd_rx.recv() => {
                     match cmd {
-                        None | Some(PingCommand::Stop) => break,
-                        Some(PingCommand::ToggleWebCheck(enabled)) => {
+                        PingCommand::ToggleWebCheck(enabled) => {
+                            info!("Web check toggled: {}", enabled);
                             web_check_enabled = enabled;
                         }
-                        Some(PingCommand::SetInterval(ms)) => {
+                        PingCommand::SetInterval(ms) => {
+                            info!("Ping interval changed to {}ms", ms);
                             interval = tokio::time::interval(Duration::from_millis(ms));
-                            // Reset the interval so it ticks from now
-                            interval.tick().await;
+                        }
+                        PingCommand::Stop => {
+                            info!("Stopping ping task for {}", addr);
+                            break;
                         }
                     }
                 }

@@ -1,3 +1,21 @@
+# Release Notes - RustyPing v2.5.8
+
+**Release Date:** 2026-02-04
+
+## 🚀 The "Deep Debug & Diagnostics" Update
+
+RustyPing v2.5.8 introduces a comprehensive logging audit and a new verbose mode for troubleshooting complex network environments.
+
+### ✨ Key Highlights
+
+*   **Comprehensive Logging Audit**: Every network operation (Ping, Speedtest, Portscan) now has granular `trace` and `debug` level logging.
+*   **New Verbose Mode**: Added `-v` / `--verbose` CLI flag to enable real-time `trace` level logging to stderr.
+*   **Improved Error Handling**: More descriptive error messages in background tasks for DNS failures, timeouts, and socket errors.
+*   **Performance Tracking**: Added timing logs for DNS resolution, ICMP round-trips, and TCP handshakes.
+*   **Stability Enhancements**: Fixed potential channel deadlocks in background tasks and improved resource cleanup.
+
+---
+
 # Release Notes - RustyPing v2.5.7
 
 **Release Date:** 2026-02-04
