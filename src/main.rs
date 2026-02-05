@@ -21,7 +21,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use std::io::{self};
 
 fn print_help() {
-    println!("RustyPing v2.5.9 - High-performance network monitoring tool");
+    println!("RustyPing v2.6.2 - High-performance network monitoring tool");
     println!();
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
@@ -103,7 +103,7 @@ async fn main() -> Result<()> {
         .with(EnvFilter::from_default_env().add_directive(log_level.into()))
         .init();
 
-    info!("Starting RustyPing v2.5.9 Deep Debug Session");
+    info!("Starting RustyPing v2.6.2 Deep Debug Session");
     debug!("Verbose mode: {}, Monotone: {}", verbose, monotone);
 
     // Set theme mode
@@ -156,7 +156,7 @@ async fn main() -> Result<()> {
         }
     }
 
-    info!("RustyPing v2.5.9 Debug Session Ended");
+    info!("RustyPing v2.6.2 Debug Session Ended");
     // Restore terminal
     disable_raw_mode()?;
     execute!(

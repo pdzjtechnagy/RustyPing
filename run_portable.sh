@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==============================================================================
-# RustyPing Linux Portable Launcher v2.5.9
+# RustyPing Linux Portable Launcher v2.6.2
 # This script downloads the latest release binary to a temp folder and runs it.
 #
 # Usage: curl -fsSL https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.sh | bash
