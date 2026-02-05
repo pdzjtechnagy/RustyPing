@@ -4,7 +4,7 @@ use crate::network::{
 use crate::storage::{Config, TargetHistory};
 use anyhow::Result;
 use chrono::Local;
-use tracing::{debug, info, trace};
+use tracing::{debug, error, info, trace};
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::time::{Duration, Instant};

@@ -265,13 +265,7 @@ pub async fn start_ping_task(
 
     tokio::spawn(async move {
         debug!("Starting background ping task for {}", addr);
-        let mut pinger = match client.pinger(addr, PingIdentifier(rand::random())).await {
-            Ok(p) => p,
-            Err(e) => {
-                error!("Failed to initialize pinger for {}: {}", addr, e);
-                return;
-            }
-        };
+        let mut pinger = client.pinger(addr, PingIdentifier(rand::random())).await;
         let mut seq = 0;
         let mut interval = tokio::time::interval(Duration::from_millis(interval_ms));
         let mut web_check_enabled = false;
@@ -292,7 +286,7 @@ pub async fn start_ping_task(
                         tokio::spawn(async move {
                             trace!("Starting TCP 80 check for {}", target);
                             let start = std::time::Instant::now();
-                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream.connect((target, 80))).await {
+                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream::connect((target, 80))).await {
                                 Ok(Ok(_)) => {
                                     let dur = start.elapsed().as_secs_f64() * 1000.0;
                                     trace!("TCP 80 success: {:.2}ms", dur);
@@ -317,7 +311,7 @@ pub async fn start_ping_task(
                         tokio::spawn(async move {
                             trace!("Starting TCP 443 check for {}", target);
                             let start = std::time::Instant::now();
-                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream.connect((target, 443))).await {
+                            let status = match tokio::time::timeout(Duration::from_secs(2), TcpStream::connect((target, 443))).await {
                                 Ok(Ok(_)) => {
                                     let dur = start.elapsed().as_secs_f64() * 1000.0;
                                     trace!("TCP 443 success: {:.2}ms", dur);

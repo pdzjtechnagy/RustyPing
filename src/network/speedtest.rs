@@ -52,7 +52,7 @@ impl SpeedTest {
         })
     }
 
-    async fn update(&mut self) -> Result<bool> {
+    pub async fn update(&mut self) -> Result<bool> {
         // Initialize if in Preparing state
         if matches!(self.state, SpeedTestState::Preparing) {
             debug!("Initializing SpeedTest background tasks");
