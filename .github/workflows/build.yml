@@ -85,7 +85,10 @@ jobs:
           tool: cross,cargo-deb,cargo-generate-rpm
 
       - name: Build with cross
-        run: cross build --release --target ${{ matrix.target }} --message-format=json > build_output.json || (cat build_output.json && exit 1)
+        run: |
+          # Use cross build but capture the full terminal output as well as JSON
+          # This ensures we see macro expansion errors and linker errors clearly
+          cross build --release --target ${{ matrix.target }} 2>&1 | tee build_full.log
         env:
           PKG_CONFIG_ALLOW_CROSS: 1
           CROSS_NO_WARNINGS: 0
@@ -94,12 +97,15 @@ jobs:
       - name: Debug Build Failures
         if: failure()
         run: |
-          echo "### Build Failure Analysis" >> $GITHUB_STEP_SUMMARY
-          if [ -f build_output.json ]; then
-            grep -E "error|warning" build_output.json | jq -r '.message.rendered // .reason' >> $GITHUB_STEP_SUMMARY
+          echo "### Build Failure Analysis (${{ matrix.target }})" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          if [ -f build_full.log ]; then
+            # Extract the actual compiler errors from the tail of the log
+            tail -n 100 build_full.log | grep -A 5 "error:" >> $GITHUB_STEP_SUMMARY || tail -n 50 build_full.log >> $GITHUB_STEP_SUMMARY
           else
-            echo "No build output found. Likely a Docker or Cross infrastructure error." >> $GITHUB_STEP_SUMMARY
+            echo "No build log found. Check raw logs for Docker/Environment issues." >> $GITHUB_STEP_SUMMARY
           fi
+          echo '```' >> $GITHUB_STEP_SUMMARY
         shell: bash
 
       - name: Prepare Artifact
