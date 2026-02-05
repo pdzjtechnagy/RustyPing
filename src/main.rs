@@ -64,8 +64,16 @@ fn check_permissions() {
 
 #[cfg(not(windows))]
 fn check_permissions() {
-    // On Linux, we could check for CAP_NET_RAW, but for now we'll just note it in logs
-    trace!("Checking permissions for non-windows platform...");
+    // On Linux, ICMP requires either root or CAP_NET_RAW
+    let is_root = unsafe { libc::getuid() == 0 };
+    
+    if !is_root {
+        // We can't easily check capabilities without extra crates, 
+        // but we can provide a helpful warning if the user isn't root.
+        debug!("Running as non-root user. Ensure CAP_NET_RAW is set via: sudo setcap cap_net_raw+ep <binary>");
+    } else {
+        trace!("Running with root privileges.");
+    }
 }
 
 #[tokio::main]

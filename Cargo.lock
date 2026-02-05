@@ -1439,6 +1439,7 @@ dependencies = [
  "env_logger",
  "fast-socks5",
  "futures-util",
+ "libc",
  "log",
  "rand 0.8.5",
  "ratatui",
