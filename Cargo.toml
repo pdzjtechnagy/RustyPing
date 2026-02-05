@@ -1,6 +1,6 @@
 [package]
 name = "rustyping"
-version = "2.6.2"
+version = "2.6.3"
 edition = "2021"
 authors = ["pdzjtechnagy"]
 description = "High-performance, terminal-based network monitoring tool with Braille-resolution graphs"

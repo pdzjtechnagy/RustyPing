@@ -260,7 +260,10 @@ pub async fn start_ping_task(
     let (res_tx, res_rx) = mpsc::channel(100);
 
     let config = Config::default();
-    let client = Client::new(&config)?;
+    let client = Client::new(&config).map_err(|e| {
+        error!("Failed to create ICMP client: {}. This usually means you lack raw socket permissions (Administrator on Windows, CAP_NET_RAW on Linux).", e);
+        anyhow::anyhow!("Network permission error: {e}")
+    })?;
     let addr = target_addr;
 
     tokio::spawn(async move {

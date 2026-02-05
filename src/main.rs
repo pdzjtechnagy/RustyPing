@@ -45,8 +45,34 @@ fn print_help() {
     println!("  Arrows        Adjust graph scale / history");
 }
 
+#[cfg(windows)]
+fn check_permissions() {
+    use std::process::Command;
+    let output = Command::new("net")
+        .arg("session")
+        .output();
+    
+    let is_admin = match output {
+        Ok(out) => out.status.success(),
+        Err(_) => false,
+    };
+
+    if !is_admin {
+        println!("WARNING: RustyPing requires Administrator privileges on Windows for ICMP (ping) operations.");
+        println!("Please restart the terminal as Administrator.");
+        println!();
+    }
+}
+
+#[cfg(not(windows))]
+fn check_permissions() {
+    // On Linux, we could check for CAP_NET_RAW, but for now we'll just note it in logs
+    trace!("Checking permissions for non-windows platform...");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    check_permissions();
     // Parse CLI arguments early to determine log level
     let mut target_arg = None;
     let mut monotone = false;
