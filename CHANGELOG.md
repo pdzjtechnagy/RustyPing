@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.6.4] - 2026-02-05
+
+### Fixed
+- **RPM Packaging**: Added missing `license` and `repository` fields to `Cargo.toml` required by `cargo-generate-rpm`.
+- **CI Resilience**: Decoupled multi-platform builds from the linting gate to ensure binary availability.
+- **Code Style**: Synchronized all source files with `rustfmt`.
+
 ## [v2.6.0] - 2026-02-04
 
 ### Added
