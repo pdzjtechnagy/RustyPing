@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v2.7.0] - 2026-02-05
+
+### Added
+- **Stability Framework**: Introduced `AUDIT_SOP.md`, `AUDIT_TOOLS.md`, and `check_stability.ps1` for repeatable quality assurance.
+- **Diagnostic Tools**: Automated installation of `cargo-deny`, `cargo-bloat`, and `cargo-nextest` via `install_tools.ps1`.
+- **Windows Safety**: Added runtime checks for Administrator privileges to prevent silent ICMP failures.
+
+### Changed
+- **CI/CD Architecture**: Decoupled build jobs from linting jobs to improve pipeline reliability.
+- **Error Reporting**: Enhanced CI logs to capture and display full compiler errors in the GitHub Summary.
+- **Packaging**: Updated RPM metadata to fully comply with `cargo-generate-rpm` requirements.
+
+### Fixed
+- **Toolchain Conflicts**: Pinned developer tools to versions compatible with Rust 1.88 (MSRV).
+- **RPM Generation**: Resolved missing `license` field errors in Linux packaging.
+
 ## [v2.6.4] - 2026-02-05
 
 ### Fixed

@@ -49,7 +49,7 @@ The build process automatically generates several types of installers:
 
 ## 🔄 Release Workflow
 
-1.  **Trigger**: A new git tag starting with `v` (e.g., `v2.5.0`) is pushed.
+1.  **Trigger**: A new git tag starting with `v` (e.g., `v2.7.0`) is pushed.
 2.  **Compile**: GitHub Actions spins up multiple runners to build all targets in parallel.
 3.  **Package**: The binaries are wrapped into `.deb`, `.rpm`, and `.tar.gz` files.
 4.  **Publish**: All generated artifacts are automatically uploaded to the GitHub Release page as assets.

@@ -21,8 +21,8 @@ use tracing::{debug, info, trace};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn print_help() {
-    println!("RustyPing v2.6.2 - High-performance network monitoring tool");
-    println!();
+    println!("RustyPing v2.7.0");
+    println!("High-performance network monitoring for professionals.");
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
     println!("Arguments:");
@@ -127,7 +127,7 @@ async fn main() -> Result<()> {
         .with(EnvFilter::from_default_env().add_directive(log_level.into()))
         .init();
 
-    info!("Starting RustyPing v2.6.2 Deep Debug Session");
+    info!("Starting RustyPing v2.7.0 Deep Debug Session");
     debug!("Verbose mode: {}, Monotone: {}", verbose, monotone);
 
     // Set theme mode
@@ -180,7 +180,7 @@ async fn main() -> Result<()> {
         }
     }
 
-    info!("RustyPing v2.6.2 Debug Session Ended");
+    info!("RustyPing v2.7.0 Debug Session Ended");
     // Restore terminal
     disable_raw_mode()?;
     execute!(

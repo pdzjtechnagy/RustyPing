@@ -1,3 +1,26 @@
+# Release Notes - RustyPing v2.7.0
+
+**Release Date:** 2026-02-05
+
+## 🚀 The "Stability & Audit" Milestone
+
+RustyPing v2.7.0 is a landmark release focusing on enterprise-grade stability, rigorous security auditing, and cross-platform resilience. This version is the result of a deep-dive audit using expert-level Rust diagnostic tools.
+
+### ✨ Key Highlights
+
+*   **Security & License Audit**: Passed a comprehensive `cargo-deny` audit, ensuring all dependencies are secure and license-compliant.
+*   **Expert Diagnostic Tooling**: Integrated `cargo-bloat`, `cargo-outdated`, and `cargo-nextest` into the development workflow for continuous quality assurance.
+*   **CI/CD Resilience**:
+    *   **Debug-Ready Builds**: CI now captures full build logs (stdout + stderr) and surfaces compiler errors directly in the GitHub Step Summary.
+    *   **Lint Decoupling**: Build pipelines are no longer blocked by minor linting errors, ensuring binaries are delivered even if style checks fail.
+    *   **RPM Packaging Fixes**: Resolved metadata issues (`license`, `repository`) that were blocking RPM generation on Linux.
+*   **Cross-Platform Hardening**:
+    *   **Windows Permissions**: Added proactive checks for Administrator privileges to prevent silent ICMP failures.
+    *   **MSRV Management**: Fixed toolchain conflicts by pinning dependencies (e.g., `cargo-nextest v0.9.114`) to respect the Minimum Supported Rust Version (1.88).
+*   **Documentation Overhaul**: Added `AUDIT_REPORT.md`, `AUDIT_SOP.md`, and `AUDIT_TOOLS.md` to standardize future stability checks.
+
+---
+
 # Release Notes - RustyPing v2.5.8
 
 **Release Date:** 2026-02-04
