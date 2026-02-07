@@ -169,11 +169,23 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
         Span::raw("│"),
         Span::styled(" ● ", Style::default().fg(status_color)),
         Span::styled(
-            quality,
+            quality.clone(),
             Style::default()
                 .fg(status_color)
                 .add_modifier(Modifier::BOLD),
         ),
+        if quality == "OFFLINE" {
+            if let Some(ref err) = stats.last_error {
+                Span::styled(
+                    format!(" ({})", err),
+                    Style::default().fg(app.theme.crit),
+                )
+            } else {
+                Span::raw("")
+            }
+        } else {
+            Span::raw("")
+        },
         Span::raw(" │"),
         Span::styled(
             format!(" Packets: {} ", stats.total_pings),

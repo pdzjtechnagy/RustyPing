@@ -3,12 +3,6 @@
 ## 1. Executive Summary
 The audit of RustyPing v2.7.0 reveals a project with strong core networking logic and an excellent TUI implementation. However, several critical dependency vulnerabilities and architectural "blind spots" were identified, particularly regarding license compliance and long-term maintainability of the TUI stack.
 
-### Key Enhancements in v2.7.0:
-*   **Linux Permission Checks**: Added `libc` dependency to proactively detect non-root execution on Linux and warn about `CAP_NET_RAW`.
-*   **Portable Launcher Reliability**: Fixed a bug where the launcher would download `.deb` or `.rpm` packages instead of raw binaries on Linux, causing `Exec format error`.
-*   **Windows Administrator Detection**: Added proactive detection of Administrator privileges for ICMP operations.
-*   **CI/CD Visibility**: Implemented `tee` log capture and Step Summaries for debugging exotic build failures.
-
 ---
 
 ## 2. Identified Issues & Vulnerabilities

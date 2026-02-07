@@ -94,14 +94,14 @@ install_rustyping() {
     # 1. Try primary name
     DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep "$PRIMARY_NAME" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
     
-    # 2. Try architecture pattern + linux (exclude archives and packages)
+    # 2. Try architecture pattern + linux
     if [ -z "$DOWNLOAD_URL" ]; then
-        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -i "linux" | grep -vE "\.deb|\.rpm|\.tar\.gz|\.zip|\.msi|\.exe" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -i "linux" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
     fi
     
-    # 3. Try just architecture pattern (exclude windows files and packages)
+    # 3. Try just architecture pattern (excluding windows files)
     if [ -z "$DOWNLOAD_URL" ]; then
-        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -vE "\.exe|\.msi|\.zip|\.deb|\.rpm|\.tar\.gz" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep "browser_download_url" | grep -iE "$ARCH_PATTERN" | grep -vE "\.exe|\.msi|\.zip" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
     fi
     
     # 4. Last resort

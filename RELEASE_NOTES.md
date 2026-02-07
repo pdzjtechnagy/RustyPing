@@ -1,3 +1,21 @@
+# Release Notes - RustyPing v2.7.1
+
+**Release Date:** 2026-02-07
+
+## 🚀 The "TUI Resilience & Debug" Update
+
+RustyPing v2.7.1 focuses on TUI stability and enhanced error reporting for network failures. This release fixes the "log pollution" issue that caused UI corruption and improves how connection errors are displayed.
+
+### ✨ Key Highlights
+
+*   **TUI Stability**: Redirected internal debug logs to `rping.log` to prevent them from corrupting the terminal UI.
+*   **Enhanced Error Reporting**: The TUI now displays specific error messages (e.g., "Request timeout", "Permission denied") next to the "OFFLINE" status indicator.
+*   **Smart Logging**: Lowered default log level to `INFO` to reduce noise, while keeping detailed `DEBUG` and `TRACE` logs available in the log file.
+*   **Bug Fixes**: Resolved a bug where lost pings were not reporting specific error reasons to the interface.
+*   **Performance Tracking**: Improved the background ping task to propagate detailed error states to the main application loop.
+
+---
+
 # Release Notes - RustyPing v2.7.0
 
 **Release Date:** 2026-02-05

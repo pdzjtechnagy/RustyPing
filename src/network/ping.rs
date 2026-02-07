@@ -30,7 +30,7 @@ pub enum PingCommand {
 #[derive(Debug)]
 pub enum PingResult {
     Success(f64),
-    Timeout,
+    Error(String),
     WebCheck { port: u16, status: WebCheckStatus },
 }
 
@@ -45,6 +45,7 @@ pub struct PingMonitor {
     pub dns_duration: Option<f64>,
     pub tcp_80: WebCheckStatus,
     pub tcp_443: WebCheckStatus,
+    pub last_error: Option<String>,
 }
 
 impl PingMonitor {
@@ -60,6 +61,7 @@ impl PingMonitor {
             dns_duration: None,
             tcp_80: WebCheckStatus::Untested,
             tcp_443: WebCheckStatus::Untested,
+            last_error: None,
         }
     }
 
@@ -90,17 +92,20 @@ impl PingMonitor {
                 self.successful_pings += 1;
                 self.history.push_back(Some(*ms));
                 self.recent.push_back(*ms);
+                self.last_error = None;
                 if self.recent.len() > 10 {
                     self.recent.pop_front();
                 }
             }
-            PingResult::Timeout => {
+            PingResult::Error(msg) => {
                 debug!(
-                    "Processing Ping Timeout (Total failed: {})",
+                    "Processing Ping Error: {} (Total failed: {})",
+                    msg,
                     self.failed_pings + 1
                 );
                 self.failed_pings += 1;
                 self.history.push_back(None);
+                self.last_error = Some(msg.clone());
             }
             PingResult::WebCheck { port, status } => {
                 debug!("Processing WebCheck Result: Port {} -> {:?}", port, status);
@@ -206,6 +211,7 @@ impl PingMonitor {
             stability,
             quality,
             total_pings: self.total_pings,
+            last_error: self.last_error.clone(),
             dns_duration: self.dns_duration,
             tcp_port_80: self.tcp_80.clone(),
             tcp_port_443: self.tcp_443.clone(),
@@ -222,6 +228,7 @@ impl PingMonitor {
         self.total_pings = 0;
         self.successful_pings = 0;
         self.failed_pings = 0;
+        self.last_error = None;
     }
 }
 
@@ -350,9 +357,10 @@ pub async fn start_ping_task(
                              }
                          }
                          Err(e) => {
-                             debug!("ICMP Ping error (seq={}) to {}: {}", seq, addr, e);
-                             if let Err(e) = res_tx.send(PingResult::Timeout).await {
-                                 warn!("Failed to send ping timeout to channel: {}", e);
+                             let err_msg = e.to_string();
+                             debug!("ICMP Ping error (seq={}) to {}: {}", seq, addr, err_msg);
+                             if let Err(e) = res_tx.send(PingResult::Error(err_msg)).await {
+                                 warn!("Failed to send ping error to channel: {}", e);
                                  break;
                              }
                          }

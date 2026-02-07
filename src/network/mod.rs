@@ -19,6 +19,7 @@ pub struct NetworkStats {
     pub stability: f64,
     pub quality: String,
     pub total_pings: u64,
+    pub last_error: Option<String>,
     // New Metrics
     pub dns_duration: Option<f64>,
     pub tcp_port_80: WebCheckStatus,
@@ -39,6 +40,7 @@ impl Default for NetworkStats {
             stability: 100.0,
             quality: "UNKNOWN".to_string(),
             total_pings: 0,
+            last_error: None,
             dns_duration: None,
             tcp_port_80: WebCheckStatus::Untested,
             tcp_port_443: WebCheckStatus::Untested,

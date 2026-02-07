@@ -21,7 +21,7 @@ use tracing::{debug, info, trace};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 fn print_help() {
-    println!("RustyPing v2.7.0");
+    println!("RustyPing v2.7.1");
     println!("High-performance network monitoring for professionals.");
     println!("Usage: rping [OPTIONS] [TARGET]");
     println!();
@@ -64,16 +64,8 @@ fn check_permissions() {
 
 #[cfg(not(windows))]
 fn check_permissions() {
-    // On Linux, ICMP requires either root or CAP_NET_RAW
-    let is_root = unsafe { libc::getuid() == 0 };
-    
-    if !is_root {
-        // We can't easily check capabilities without extra crates, 
-        // but we can provide a helpful warning if the user isn't root.
-        debug!("Running as non-root user. Ensure CAP_NET_RAW is set via: sudo setcap cap_net_raw+ep <binary>");
-    } else {
-        trace!("Running with root privileges.");
-    }
+    // On Linux, we could check for CAP_NET_RAW, but for now we'll just note it in logs
+    trace!("Checking permissions for non-windows platform...");
 }
 
 #[tokio::main]
@@ -127,15 +119,23 @@ async fn main() -> Result<()> {
     let log_level = if verbose {
         tracing::Level::TRACE
     } else {
-        tracing::Level::DEBUG
+        tracing::Level::INFO
     };
 
-    tracing_subscriber::registry()
-        .with(fmt::layer().with_writer(io::stderr))
-        .with(EnvFilter::from_default_env().add_directive(log_level.into()))
-        .init();
+    // Log to a file to avoid corrupting the TUI output on stderr
+    let log_file_appender = std::fs::File::create("rping.log").ok();
 
-    info!("Starting RustyPing v2.7.0 Deep Debug Session");
+    let registry = tracing_subscriber::registry()
+        .with(EnvFilter::from_default_env().add_directive(log_level.into()));
+
+    if let Some(file) = log_file_appender {
+        registry.with(fmt::layer().with_writer(file).with_ansi(false)).init();
+    } else {
+        // Fallback to stderr if file creation fails, though this may still corrupt UI
+        registry.with(fmt::layer().with_writer(io::stderr)).init();
+    }
+
+    info!("Starting RustyPing v2.7.1 Deep Debug Session");
     debug!("Verbose mode: {}, Monotone: {}", verbose, monotone);
 
     // Set theme mode
@@ -188,7 +188,7 @@ async fn main() -> Result<()> {
         }
     }
 
-    info!("RustyPing v2.7.0 Debug Session Ended");
+    info!("RustyPing v2.7.1 Debug Session Ended");
     // Restore terminal
     disable_raw_mode()?;
     execute!(

@@ -128,7 +128,7 @@ impl App {
                 let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S");
                 let (ms, status) = match result {
                     PingResult::Success(v) => (v, "Success"),
-                    PingResult::Timeout => (0.0, "Timeout"),
+                    PingResult::Error(_) => (0.0, "Error"),
                     PingResult::WebCheck { .. } => (0.0, "WebCheck"), // Skip logging detailed web stats for now
                 };
                 if status != "WebCheck" {
