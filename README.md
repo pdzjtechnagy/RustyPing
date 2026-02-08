@@ -8,6 +8,8 @@
 ## ⚡ Quick Start (Portable One-Liners)
 Run the latest version of RustyPing instantly without installation.
 
+If you're on Windows, just open up powershell as an administrator and past the following in.
+
 **Windows (PowerShell):**
 ```powershell
 iwr -useb https://raw.githubusercontent.com/pdzjtechnagy/RustyPing/main/run_portable.ps1 | iex
